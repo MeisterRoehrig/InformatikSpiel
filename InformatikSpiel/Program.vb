@@ -67,28 +67,46 @@ Module Program
         height = 20
         Console.SetWindowSize(width, height)
         Console.CursorVisible = False
+        Console.TreatControlCAsInput = True
     End Sub
 
+    Public stayInLoop As Boolean = True
     Public Function AsyncLoop() As Task
         Dim taskA = Task.Run(AddressOf RenderLoop)
         Dim taskB = Task.Run(AddressOf Timer)
+        Dim taskC = Task.Run(AddressOf KeyImput)
 
         Task.WaitAll(taskA, taskB)
     End Function
 
     Public Sub RenderLoop()
-        While True
+        While stayInLoop
             DrawGround()
-            DrawPlayer(0, 16)
+            DrawPlayer(1, 16)
             DrawTimer()
-
             Threading.Thread.Sleep(20)
         End While
     End Sub
     Public Sub Timer()
-        While True
+        While stayInLoop
             gameTimer += 1
             Threading.Thread.Sleep(1000)
+        End While
+    End Sub
+    Public Sub KeyImput()
+        Dim cki As ConsoleKeyInfo
+        Dim keyPressed As String
+
+        While stayInLoop
+            cki = Console.ReadKey()
+            If (cki.Modifiers And ConsoleModifiers.Shift) <> 0 Then
+
+            End If
+            If (cki.Modifiers And ConsoleModifiers.Control) <> 0 Then
+                stayInLoop = False
+            End If
+            keyPressed = keyPressed & cki.Key.ToString
+            WriteAt(keyPressed, 0, 2)
         End While
     End Sub
 
