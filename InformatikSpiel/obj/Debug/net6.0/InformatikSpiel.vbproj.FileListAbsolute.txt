@@ -1,0 +1,15 @@
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\InformatikSpiel.exe
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\InformatikSpiel.deps.json
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\InformatikSpiel.runtimeconfig.json
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\InformatikSpiel.dll
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\InformatikSpiel.pdb
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.vbproj.AssemblyReference.cache
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.GeneratedMSBuildEditorConfig.editorconfig
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.AssemblyInfoInputs.cache
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.AssemblyInfo.vb
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.vbproj.CoreCompileInputs.cache
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.dll
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\refint\InformatikSpiel.dll
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.pdb
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.genruntimeconfig.cache
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\ref\InformatikSpiel.dll
