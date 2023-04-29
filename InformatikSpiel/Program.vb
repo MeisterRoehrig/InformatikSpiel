@@ -377,14 +377,12 @@ Module Program
                     WriteAt(" ", playerAnchorX + 7, playerAnchorY + 5)
                     WriteAt(" ", playerAnchorX + 8, playerAnchorY + 5)
             End Select
-
-
-
         Catch e As ArgumentOutOfRangeException
             Console.Clear()
             Console.WriteLine(e.Message)
         End Try
     End Sub
+
     Public Sub DrawGround()
         Try
             For i = 0 To 99
@@ -419,11 +417,18 @@ Module Program
         Console.TreatControlCAsInput = True
     End Sub
 
+    Public Sub PlayerManager()
+
+
+    End Sub
+
     Public stayInLoop As Boolean = True
+    Public playerAnimationState As Integer
     Public Function AsyncLoop() As Task
         Dim taskA = Task.Run(AddressOf RenderLoop)
         Dim taskB = Task.Run(AddressOf Timer)
         Dim taskC = Task.Run(AddressOf KeyImput)
+        Dim taskD = Task.Run(AddressOf PlayerAnimator)
 
         Task.WaitAll(taskA, taskB)
     End Function
@@ -431,26 +436,9 @@ Module Program
     Public Sub RenderLoop()
         While stayInLoop
             DrawGround()
-            DrawPlayer(1, 1, 13)
-            Threading.Thread.Sleep(60)
-            DrawGround()
-            DrawPlayer(2, 1, 13)
-            Threading.Thread.Sleep(60)
-            DrawGround()
-            DrawPlayer(3, 1, 13)
-            Threading.Thread.Sleep(60)
-            DrawGround()
-            DrawPlayer(4, 1, 13)
-            Threading.Thread.Sleep(60)
-            DrawGround()
-            DrawPlayer(5, 1, 13)
-            Threading.Thread.Sleep(60)
-            DrawGround()
-            DrawPlayer(6, 1, 13)
-            Threading.Thread.Sleep(60)
-            DrawGround()
-            DrawPlayer(7, 1, 13)
-            Threading.Thread.Sleep(60)
+            DrawTimer()
+            DrawPlayer(playerAnimationState, 0, 14)
+            Threading.Thread.Sleep(30)
         End While
     End Sub
     Public Sub Timer()
@@ -472,6 +460,16 @@ Module Program
         End While
     End Sub
 
+    Public Sub PlayerAnimator()
+        While stayInLoop
+            If playerAnimationState = 7 Then
+                playerAnimationState = 1
+            Else
+                playerAnimationState += 1
+            End If
+            Threading.Thread.Sleep(60)
+        End While
+    End Sub
 
 
     Public Sub Main()
