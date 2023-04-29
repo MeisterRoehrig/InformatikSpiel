@@ -1,4 +1,5 @@
 Imports System
+Imports System.Net.NetworkInformation
 
 Module Program
 
@@ -17,50 +18,50 @@ Module Program
         Try
             Select Case playerState
                 Case 0
-                    WriteAt("@", playerAnchorX + 1, playerAnchorY + 1)
-                    WriteAt("@", playerAnchorX + 2, playerAnchorY + 1)
-                    WriteAt("@", playerAnchorX + 3, playerAnchorY + 1)
-                    WriteAt("@", playerAnchorX + 4, playerAnchorY + 1)
-                    WriteAt("@", playerAnchorX + 5, playerAnchorY + 1)
-                    WriteAt("@", playerAnchorX + 6, playerAnchorY + 1)
-                    WriteAt("@", playerAnchorX + 7, playerAnchorY + 1)
-                    WriteAt("@", playerAnchorX + 8, playerAnchorY + 1)
+                    WriteAt(" ", playerAnchorX + 1, playerAnchorY + 1)
+                    WriteAt(" ", playerAnchorX + 2, playerAnchorY + 1)
+                    WriteAt(" ", playerAnchorX + 3, playerAnchorY + 1)
+                    WriteAt(" ", playerAnchorX + 4, playerAnchorY + 1)
+                    WriteAt(" ", playerAnchorX + 5, playerAnchorY + 1)
+                    WriteAt(" ", playerAnchorX + 6, playerAnchorY + 1)
+                    WriteAt(" ", playerAnchorX + 7, playerAnchorY + 1)
+                    WriteAt(" ", playerAnchorX + 8, playerAnchorY + 1)
 
-                    WriteAt("@", playerAnchorX + 1, playerAnchorY + 2)
-                    WriteAt("@", playerAnchorX + 2, playerAnchorY + 2)
-                    WriteAt("@", playerAnchorX + 3, playerAnchorY + 2)
-                    WriteAt("@", playerAnchorX + 4, playerAnchorY + 2)
-                    WriteAt("@", playerAnchorX + 5, playerAnchorY + 2)
-                    WriteAt("@", playerAnchorX + 6, playerAnchorY + 2)
-                    WriteAt("@", playerAnchorX + 7, playerAnchorY + 2)
-                    WriteAt("@", playerAnchorX + 8, playerAnchorY + 2)
+                    WriteAt(" ", playerAnchorX + 1, playerAnchorY + 2)
+                    WriteAt(" ", playerAnchorX + 2, playerAnchorY + 2)
+                    WriteAt(" ", playerAnchorX + 3, playerAnchorY + 2)
+                    WriteAt(" ", playerAnchorX + 4, playerAnchorY + 2)
+                    WriteAt(" ", playerAnchorX + 5, playerAnchorY + 2)
+                    WriteAt(" ", playerAnchorX + 6, playerAnchorY + 2)
+                    WriteAt(" ", playerAnchorX + 7, playerAnchorY + 2)
+                    WriteAt(" ", playerAnchorX + 8, playerAnchorY + 2)
 
-                    WriteAt("@", playerAnchorX + 1, playerAnchorY + 3)
-                    WriteAt("@", playerAnchorX + 2, playerAnchorY + 3)
-                    WriteAt("@", playerAnchorX + 3, playerAnchorY + 3)
-                    WriteAt("@", playerAnchorX + 4, playerAnchorY + 3)
-                    WriteAt("@", playerAnchorX + 5, playerAnchorY + 3)
-                    WriteAt("@", playerAnchorX + 6, playerAnchorY + 3)
-                    WriteAt("@", playerAnchorX + 7, playerAnchorY + 3)
-                    WriteAt("@", playerAnchorX + 8, playerAnchorY + 3)
+                    WriteAt(" ", playerAnchorX + 1, playerAnchorY + 3)
+                    WriteAt(" ", playerAnchorX + 2, playerAnchorY + 3)
+                    WriteAt(" ", playerAnchorX + 3, playerAnchorY + 3)
+                    WriteAt(" ", playerAnchorX + 4, playerAnchorY + 3)
+                    WriteAt(" ", playerAnchorX + 5, playerAnchorY + 3)
+                    WriteAt(" ", playerAnchorX + 6, playerAnchorY + 3)
+                    WriteAt(" ", playerAnchorX + 7, playerAnchorY + 3)
+                    WriteAt(" ", playerAnchorX + 8, playerAnchorY + 3)
 
-                    WriteAt("@", playerAnchorX + 1, playerAnchorY + 4)
-                    WriteAt("@", playerAnchorX + 2, playerAnchorY + 4)
-                    WriteAt("@", playerAnchorX + 3, playerAnchorY + 4)
-                    WriteAt("@", playerAnchorX + 4, playerAnchorY + 4)
-                    WriteAt("@", playerAnchorX + 5, playerAnchorY + 4)
-                    WriteAt("@", playerAnchorX + 6, playerAnchorY + 4)
-                    WriteAt("@", playerAnchorX + 7, playerAnchorY + 4)
-                    WriteAt("@", playerAnchorX + 8, playerAnchorY + 4)
+                    WriteAt(" ", playerAnchorX + 1, playerAnchorY + 4)
+                    WriteAt(" ", playerAnchorX + 2, playerAnchorY + 4)
+                    WriteAt(" ", playerAnchorX + 3, playerAnchorY + 4)
+                    WriteAt(" ", playerAnchorX + 4, playerAnchorY + 4)
+                    WriteAt(" ", playerAnchorX + 5, playerAnchorY + 4)
+                    WriteAt(" ", playerAnchorX + 6, playerAnchorY + 4)
+                    WriteAt(" ", playerAnchorX + 7, playerAnchorY + 4)
+                    WriteAt(" ", playerAnchorX + 8, playerAnchorY + 4)
 
-                    WriteAt("@", playerAnchorX + 1, playerAnchorY + 5)
-                    WriteAt("@", playerAnchorX + 2, playerAnchorY + 5)
-                    WriteAt("@", playerAnchorX + 3, playerAnchorY + 5)
-                    WriteAt("@", playerAnchorX + 4, playerAnchorY + 5)
-                    WriteAt("@", playerAnchorX + 5, playerAnchorY + 5)
-                    WriteAt("@", playerAnchorX + 6, playerAnchorY + 5)
-                    WriteAt("@", playerAnchorX + 7, playerAnchorY + 5)
-                    WriteAt("@", playerAnchorX + 8, playerAnchorY + 5)
+                    WriteAt(" ", playerAnchorX + 1, playerAnchorY + 5)
+                    WriteAt(" ", playerAnchorX + 2, playerAnchorY + 5)
+                    WriteAt(" ", playerAnchorX + 3, playerAnchorY + 5)
+                    WriteAt(" ", playerAnchorX + 4, playerAnchorY + 5)
+                    WriteAt(" ", playerAnchorX + 5, playerAnchorY + 5)
+                    WriteAt(" ", playerAnchorX + 6, playerAnchorY + 5)
+                    WriteAt(" ", playerAnchorX + 7, playerAnchorY + 5)
+                    WriteAt(" ", playerAnchorX + 8, playerAnchorY + 5)
                 Case 1
                     WriteAt(" ", playerAnchorX + 1, playerAnchorY + 1)
                     WriteAt(" ", playerAnchorX + 2, playerAnchorY + 1)
@@ -383,6 +384,20 @@ Module Program
         End Try
     End Sub
 
+    Public Sub ClearArea(areaToClear As Integer)
+        Try
+            Select Case areaToClear
+                Case 0
+                Case 1
+
+            End Select
+
+        Catch e As ArgumentOutOfRangeException
+            Console.Clear()
+            Console.WriteLine(e.Message)
+        End Try
+    End Sub
+
     Public Sub DrawGround()
         Try
             For i = 0 To 99
@@ -417,13 +432,18 @@ Module Program
         Console.TreatControlCAsInput = True
     End Sub
 
+    Dim playerJumpHeightCache As Integer
+    Dim playerXPosition As Integer = 1
     Public Sub PlayerManager()
-
-
+        If playerJumpHeight <> playerJumpHeightCache Then DrawPlayer(0, playerXPosition, 14 - playerJumpHeightCache)
+        DrawPlayer(playerAnimationState, playerXPosition, 14 - playerJumpHeight)
+        playerJumpHeightCache = playerJumpHeight
     End Sub
 
     Public stayInLoop As Boolean = True
     Public playerAnimationState As Integer
+    Public playerJump As Boolean
+    Public playerJumpHeight As Integer
     Public Function AsyncLoop() As Task
         Dim taskA = Task.Run(AddressOf RenderLoop)
         Dim taskB = Task.Run(AddressOf Timer)
@@ -437,8 +457,8 @@ Module Program
         While stayInLoop
             DrawGround()
             DrawTimer()
-            DrawPlayer(playerAnimationState, 0, 14)
-            Threading.Thread.Sleep(30)
+            PlayerManager()
+            Threading.Thread.Sleep(1)
         End While
     End Sub
     Public Sub Timer()
@@ -451,17 +471,19 @@ Module Program
         Dim cki As ConsoleKeyInfo
         While stayInLoop
             cki = Console.ReadKey()
-            If (cki.Modifiers And ConsoleModifiers.Shift) <> 0 Then
-
-            End If
-            If (cki.Modifiers And ConsoleModifiers.Control And cki.Key = 67) <> 0 Then
-                stayInLoop = False
-            End If
+            If (cki.Key = 32) <> 0 Then playerJump = True
+            If (cki.Modifiers And ConsoleModifiers.Control And cki.Key = 67) <> 0 Then stayInLoop = False
         End While
     End Sub
-
     Public Sub PlayerAnimator()
         While stayInLoop
+            If playerJump Then
+                If playerJumpHeight < 6 Then playerJumpHeight += 2
+
+            Else
+                If playerJumpHeight > 0 Then playerJumpHeight -= 1
+            End If
+            If playerJumpHeight > 5 Then playerJump = False
             If playerAnimationState = 7 Then
                 playerAnimationState = 1
             Else
