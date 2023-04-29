@@ -106,7 +106,6 @@ Module Program
                 stayInLoop = False
             End If
             keyPressed = keyPressed & cki.Key.ToString
-            WriteAt(keyPressed, 0, 2)
         End While
     End Sub
 
