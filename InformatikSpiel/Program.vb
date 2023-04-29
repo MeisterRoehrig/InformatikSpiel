@@ -25,14 +25,16 @@ Module Program
     Public gameTimer As Integer = 0
     Public gameTimerCache As Integer = 0
     Public fps As Double = 0
-    Public Sub DrawTimer()
-        WriteAt("Timer:" & gameTimer, 0, 0)
+    Public score As Integer = 0
+    Public Sub DrawStats()
+        WriteAt("Timer:" & gameTimer, 1, 1)
         If gameTimer > gameTimerCache Then
-            WriteAt("FPS:" & fps, 0, 1)
+            WriteAt("FPS:" & fps, 1, 2)
             fps = 0
         End If
         fps += 1
         gameTimerCache = gameTimer
+        WriteAt("Score:" & score, 1, 0)
     End Sub
 
     Public Sub DrawPlayer(playerState As Integer, playerAnchorX As Integer, playerAnchorY As Integer)
@@ -454,6 +456,9 @@ Module Program
         For index As Integer = groundTiles.Count - 1 To 0 Step -1
             DrawGround($"{groundTiles(index).tileType} ", index, 19)
         Next
+        If groundTiles(6).tileType = 1 Then
+            score += 1
+        End If
     End Sub
 
 
@@ -473,7 +478,7 @@ Module Program
 
     Public Sub RenderLoop()
         While stayInLoop
-            DrawTimer()
+            DrawStats()
             PlayerManager()
             GroundManager()
             Threading.Thread.Sleep(1)
