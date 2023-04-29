@@ -1,5 +1,6 @@
 Imports System
 Imports System.Net.NetworkInformation
+Imports System.Runtime.CompilerServices
 
 Module Program
 
@@ -12,6 +13,26 @@ Module Program
             Console.Clear()
             Console.WriteLine(e.Message)
         End Try
+    End Sub
+
+    Public Sub ConsoleSetup(consoleWidth As Integer, consoleHeight As Integer)
+        Console.SetWindowSize(consoleWidth, consoleHeight)
+        Console.SetBufferSize(consoleWidth, consoleHeight)
+        Console.CursorVisible = False
+        Console.TreatControlCAsInput = True
+    End Sub
+
+    Public gameTimer As Integer = 0
+    Public gameTimerCache As Integer = 0
+    Public fps As Double = 0
+    Public Sub DrawTimer()
+        WriteAt("Timer:" & gameTimer, 0, 0)
+        If gameTimer > gameTimerCache Then
+            WriteAt("FPS:" & fps, 0, 1)
+            fps = 0
+        End If
+        fps += 1
+        gameTimerCache = gameTimer
     End Sub
 
     Public Sub DrawPlayer(playerState As Integer, playerAnchorX As Integer, playerAnchorY As Integer)
@@ -384,12 +405,26 @@ Module Program
         End Try
     End Sub
 
-    Public Sub ClearArea(areaToClear As Integer)
-        Try
-            Select Case areaToClear
-                Case 0
-                Case 1
+    Dim playerJumpHeightCache As Integer
+    Dim playerXPosition As Integer = 1
+    Dim playerYPosition As Integer = 13
+    Public Sub PlayerManager()
+        If playerJumpHeight <> playerJumpHeightCache Then DrawPlayer(0, playerXPosition, playerYPosition - playerJumpHeightCache)
+        DrawPlayer(playerAnimationState, playerXPosition, playerYPosition - playerJumpHeight)
+        playerJumpHeightCache = playerJumpHeight
+    End Sub
 
+    Public Sub DrawGround(groundState As Integer, groundAnchorX As Integer, groundAnchorY As Integer)
+        Try
+            Select Case groundState
+                Case 0
+                    WriteAt(" ", groundAnchorX, groundAnchorY - 2)
+                    WriteAt(" ", groundAnchorX, groundAnchorY - 1)
+                    WriteAt("`", groundAnchorX, groundAnchorY)
+                Case 1
+                    WriteAt("V", groundAnchorX, groundAnchorY - 2)
+                    WriteAt("|", groundAnchorX, groundAnchorY - 1)
+                    WriteAt("`", groundAnchorX, groundAnchorY)
             End Select
 
         Catch e As ArgumentOutOfRangeException
@@ -398,47 +433,29 @@ Module Program
         End Try
     End Sub
 
-    Public Sub DrawGround()
-        Try
-            For i = 0 To 99
-                WriteAt("_", i, 19)
-            Next
+    Public Class Tile
+        Public Property tileType As Integer
+    End Class
 
-        Catch e As ArgumentOutOfRangeException
-            Console.Clear()
-            Console.WriteLine(e.Message)
-        End Try
+    Public groundTiles As New List(Of Tile)
+    Public Sub groundArraySetUp()
+        For i = 0 To 75
+            groundTiles.Add(New Tile With {.tileType = 0})
+        Next
+        For i = 76 To 76
+            groundTiles.Add(New Tile With {.tileType = 1})
+        Next
+        For i = 77 To 99
+            groundTiles.Add(New Tile With {.tileType = 0})
+        Next
     End Sub
 
-    Public gameTimer As Integer = 0
-    Public gameTimerCache As Integer = 0
-    Public fps As Double = 0
-    Public Sub DrawTimer()
-        WriteAt("Timer:" & gameTimer, 0, 0)
-        If gameTimer > gameTimerCache Then
-            WriteAt("FPS:" & fps, 0, 1)
-            fps = 0
-        End If
-        fps += 1
-        gameTimerCache = gameTimer
+    Public Sub GroundManager()
+        For index As Integer = groundTiles.Count - 1 To 0 Step -1
+            DrawGround($"{groundTiles(index).tileType} ", index, 19)
+        Next
     End Sub
 
-    Public Sub ConsoleSetup()
-        Dim width, height As Integer
-        width = 100
-        height = 20
-        Console.SetWindowSize(width, height)
-        Console.CursorVisible = False
-        Console.TreatControlCAsInput = True
-    End Sub
-
-    Dim playerJumpHeightCache As Integer
-    Dim playerXPosition As Integer = 1
-    Public Sub PlayerManager()
-        If playerJumpHeight <> playerJumpHeightCache Then DrawPlayer(0, playerXPosition, 14 - playerJumpHeightCache)
-        DrawPlayer(playerAnimationState, playerXPosition, 14 - playerJumpHeight)
-        playerJumpHeightCache = playerJumpHeight
-    End Sub
 
     Public stayInLoop As Boolean = True
     Public playerAnimationState As Integer
@@ -449,15 +466,16 @@ Module Program
         Dim taskB = Task.Run(AddressOf Timer)
         Dim taskC = Task.Run(AddressOf KeyImput)
         Dim taskD = Task.Run(AddressOf PlayerAnimator)
+        Dim taskE = Task.Run(AddressOf GroundAnimator)
 
         Task.WaitAll(taskA, taskB)
     End Function
 
     Public Sub RenderLoop()
         While stayInLoop
-            DrawGround()
             DrawTimer()
             PlayerManager()
+            GroundManager()
             Threading.Thread.Sleep(1)
         End While
     End Sub
@@ -479,7 +497,6 @@ Module Program
         While stayInLoop
             If playerJump Then
                 If playerJumpHeight < 6 Then playerJumpHeight += 2
-
             Else
                 If playerJumpHeight > 0 Then playerJumpHeight -= 1
             End If
@@ -492,13 +509,31 @@ Module Program
             Threading.Thread.Sleep(60)
         End While
     End Sub
+    Dim spawnTimer As Integer
+    Dim randomLowerBound As Integer = 0
+    Dim randomUpperBound As Integer = 5
+    Public Sub GroundAnimator()
+        While stayInLoop
+            spawnTimer += 1
+            groundTiles.RemoveAt(0)
+            If spawnTimer > 150 Then
+                groundTiles.Add(New Tile With {.tileType = 1})
+                spawnTimer = 0
+            Else
+                groundTiles.Add(New Tile With {.tileType = 0})
+            End If
+            Randomize()
+            spawnTimer = spawnTimer + CInt(Math.Floor((randomUpperBound - randomLowerBound + 1) * Rnd())) + randomLowerBound
+
+            Threading.Thread.Sleep(17)
+        End While
+    End Sub
 
 
     Public Sub Main()
-        ConsoleSetup()
+        ConsoleSetup(100, 20)
+        groundArraySetUp()
         AsyncLoop()
     End Sub
 End Module
-
-
 
