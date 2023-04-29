@@ -15,6 +15,12 @@ Module Program
         End Try
     End Sub
 
+    ' Quelle [https://stackoverflow.com/a/4985870/13324025]
+    Function isDivisible(x As Integer, d As Integer) As Boolean
+        Return (x Mod d) = 0
+    End Function
+
+
     Public Sub ConsoleSetup(consoleWidth As Integer, consoleHeight As Integer)
         Console.SetWindowSize(consoleWidth, consoleHeight)
         Console.SetBufferSize(consoleWidth, consoleHeight)
@@ -26,6 +32,7 @@ Module Program
     Public gameTimerCache As Integer = 0
     Public fps As Double = 0
     Public score As Integer = 0
+    Public highScore As Integer
     Public Sub DrawStats()
         WriteAt("Timer:" & gameTimer, 1, 1)
         If gameTimer > gameTimerCache Then
@@ -407,7 +414,7 @@ Module Program
         End Try
     End Sub
 
-    Dim playerJumpHeightCache As Integer
+    Public playerJumpHeightCache As Integer
     Dim playerXPosition As Integer = 1
     Dim playerYPosition As Integer = 13
     Public Sub PlayerManager()
@@ -440,14 +447,9 @@ Module Program
     End Class
 
     Public groundTiles As New List(Of Tile)
-    Public Sub groundArraySetUp()
-        For i = 0 To 75
-            groundTiles.Add(New Tile With {.tileType = 0})
-        Next
-        For i = 76 To 76
-            groundTiles.Add(New Tile With {.tileType = 1})
-        Next
-        For i = 77 To 99
+    Public Sub GroundArraySetUp()
+        groundTiles.Clear()
+        For i = 0 To 99
             groundTiles.Add(New Tile With {.tileType = 0})
         Next
     End Sub
@@ -457,7 +459,11 @@ Module Program
             DrawGround($"{groundTiles(index).tileType} ", index, 19)
         Next
         If groundTiles(6).tileType = 1 Then
-            score += 1
+            If playerJumpHeight < 2 Then
+                stayInLoop = False
+            Else
+                score += 1
+            End If
         End If
     End Sub
 
@@ -498,14 +504,20 @@ Module Program
             If (cki.Modifiers And ConsoleModifiers.Control And cki.Key = 67) <> 0 Then stayInLoop = False
         End While
     End Sub
+
+    Public animateJump As Boolean = False
     Public Sub PlayerAnimator()
         While stayInLoop
-            If playerJump Then
+            If playerJumpHeight < 1 And playerJump Then
+                animateJump = True
+                playerJump = False
+            End If
+            If animateJump Then
                 If playerJumpHeight < 6 Then playerJumpHeight += 2
             Else
                 If playerJumpHeight > 0 Then playerJumpHeight -= 1
             End If
-            If playerJumpHeight > 5 Then playerJump = False
+            If playerJumpHeight > 5 Then animateJump = False
             If playerAnimationState = 7 Then
                 playerAnimationState = 1
             Else
@@ -514,7 +526,7 @@ Module Program
             Threading.Thread.Sleep(60)
         End While
     End Sub
-    Dim spawnTimer As Integer
+    Public spawnTimer As Integer
     Dim randomLowerBound As Integer = 0
     Dim randomUpperBound As Integer = 5
     Public Sub GroundAnimator()
@@ -535,10 +547,58 @@ Module Program
     End Sub
 
 
+    Public Sub GameStart()
+        Console.Clear()
+        stayInLoop = True
+        playerAnimationState = 0
+        playerJump = False
+        animateJump = False
+        playerJumpHeight = 0
+        playerJumpHeightCache = 0
+        spawnTimer = 0
+        gameTimer = 0
+        gameTimerCache = 0
+        fps = 0
+        score = 0
+        GroundArraySetUp()
+        AsyncLoop()
+    End Sub
+
+    Public Sub GameOver()
+        Console.ForegroundColor = ConsoleColor.DarkRed
+        Beep()
+        WriteAt("Game Over", 45, 8)
+        Console.ForegroundColor = ConsoleColor.White
+        If score > highScore Then
+            highScore = score
+            WriteAt("New Highscore", 43, 9)
+        End If
+        WriteAt("Double tap [Space] to Restart", 35, 11)
+
+        'Quelle [https://stackoverflow.com/a/44519918/13324025]
+        Dim kp As ConsoleKeyInfo
+        Do
+            If Console.KeyAvailable Then
+                kp = Console.ReadKey(True)
+                If kp.Key = 32 Then
+                    Exit Do
+                End If
+            End If
+            Threading.Thread.Sleep(100)
+        Loop While True
+        GameStart()
+    End Sub
+
+    Public Sub GameLoop()
+        GameStart()
+        While True
+            GameOver()
+        End While
+    End Sub
+
     Public Sub Main()
         ConsoleSetup(100, 20)
-        groundArraySetUp()
-        AsyncLoop()
+        GameLoop()
     End Sub
 End Module
 

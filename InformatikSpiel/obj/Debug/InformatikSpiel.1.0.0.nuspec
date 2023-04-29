@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>InformatikSpiel</id>
+    <version>1.0.0</version>
+    <authors>InformatikSpiel</authors>
+    <description>Package Description</description>
+    <dependencies>
+      <group targetFramework="net6.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\InformatikSpiel.runtimeconfig.json" target="lib\net6.0\InformatikSpiel.runtimeconfig.json" />
+    <file src="D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\InformatikSpiel.dll" target="lib\net6.0\InformatikSpiel.dll" />
+  </files>
+</package>
