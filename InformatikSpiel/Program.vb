@@ -531,7 +531,6 @@ Module Program
     Dim randomUpperBound As Integer = 5
     Public Sub GroundAnimator()
         While stayInLoop
-            spawnTimer += 1
             groundTiles.RemoveAt(0)
             If spawnTimer > 150 Then
                 groundTiles.Add(New Tile With {.tileType = 1})
@@ -540,7 +539,7 @@ Module Program
                 groundTiles.Add(New Tile With {.tileType = 0})
             End If
             Randomize()
-            spawnTimer = spawnTimer + CInt(Math.Floor((randomUpperBound - randomLowerBound + 1) * Rnd())) + randomLowerBound
+            spawnTimer = (spawnTimer + CInt(Math.Floor((randomUpperBound - randomLowerBound + 1) * Rnd())) + randomLowerBound) + (score / 20)
 
             Threading.Thread.Sleep(17)
         End While
