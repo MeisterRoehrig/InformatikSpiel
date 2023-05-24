@@ -1,52 +1,62 @@
+'importieren von Bibliotheken
 Imports System
+Imports System.IO
+Imports System.Linq.Expressions
 Imports System.Net.NetworkInformation
 Imports System.Runtime.CompilerServices
 
-Module Program
+
+Module Module1
 
     Dim origRow, origCol As Integer
+    'Funktion zur Ausgabe eines Zeichens an einer bestimmten Position der Konsole
+    's ist das zu schreibende Zeichen; x und y sind die Koordinaten
     Public Sub WriteAt(s As String, x As Integer, y As Integer)
         Try
             Console.SetCursorPosition(origCol + x, origRow + y)
             Console.Write(s)
-        Catch e As ArgumentOutOfRangeException
+        Catch e As ArgumentOutOfRangeException 'Fallback (Bei ungültiger Eingabe)
             Console.Clear()
             Console.WriteLine(e.Message)
         End Try
     End Sub
 
     ' Quelle [https://stackoverflow.com/a/4985870/13324025]
+    'gibt aus ob Zahl ein ganzzahliger Teiler ist
     Function isDivisible(x As Integer, d As Integer) As Boolean
         Return (x Mod d) = 0
     End Function
 
-
+    'Einrichten der Konsole
+    'Größe, Scrollbar wird entfernt, Kursor ausblenden
     Public Sub ConsoleSetup(consoleWidth As Integer, consoleHeight As Integer)
         Console.SetWindowSize(consoleWidth, consoleHeight)
         Console.SetBufferSize(consoleWidth, consoleHeight)
         Console.CursorVisible = False
-        Console.TreatControlCAsInput = True
+        Console.TreatControlCAsInput = True 'verhindert das Abbrechen des Programms durch Strg c: Fenster wird nicht geschlossen, GameOver wird angezeigt
     End Sub
 
-    Public gameTimer As Integer = 0
-    Public gameTimerCache As Integer = 0
+    Public gameTimer As Integer = 0 'verstrichene Zeit seit Spielbeginn (Rundenstart)
+    Public gameTimerCache As Integer = 0 'für Ausgabe FPS nötig
     Public fps As Double = 0
     Public score As Integer = 0
     Public highScore As Integer
     Public Sub DrawStats()
-        WriteAt("Timer:" & gameTimer, 1, 1)
-        If gameTimer > gameTimerCache Then
-            WriteAt("FPS:" & fps, 1, 2)
+        WriteAt("Timer:" & gameTimer, 1, 1) 'Gametimer: Ausgabe der Spielzeit auf dem Bildschirm
+        If gameTimer > gameTimerCache Then 'wann ist eine Sekunde vergangen
+            WriteAt("FPS:" & fps, 1, 2) 'nach einer Sekunde Ausgabe der FPS-Variable auf dem Bildschirm
             fps = 0
         End If
-        fps += 1
+        fps += 1 'erhöhe die FPS Variable jeden gerenderten Frame um 1
         gameTimerCache = gameTimer
         WriteAt("Score:" & score, 1, 0)
     End Sub
 
+    'Animation der Spielfigur
     Public Sub DrawPlayer(playerState As Integer, playerAnchorX As Integer, playerAnchorY As Integer)
+        'Animation der Spielfigur bestehend aus 8 Frames
         Try
-            Select Case playerState
+            Select Case playerState 'playerState: welcher Frame der Figuranimation soll ausgegeben werden
                 Case 0
                     WriteAt(" ", playerAnchorX + 1, playerAnchorY + 1)
                     WriteAt(" ", playerAnchorX + 2, playerAnchorY + 1)
@@ -408,21 +418,23 @@ Module Program
                     WriteAt(" ", playerAnchorX + 7, playerAnchorY + 5)
                     WriteAt(" ", playerAnchorX + 8, playerAnchorY + 5)
             End Select
-        Catch e As ArgumentOutOfRangeException
+        Catch e As ArgumentOutOfRangeException 'Fallback für Abruf eines nicht vorhandenen Zustands
             Console.Clear()
             Console.WriteLine(e.Message)
         End Try
     End Sub
 
-    Public playerJumpHeightCache As Integer
-    Dim playerXPosition As Integer = 1
+    'Sprung der Spielfigur über die Hindernisse
+    Public playerJumpHeightCache As Integer 'Sprunghöhe!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
+    Dim playerXPosition As Integer = 1 'Ausgangsposition des Spielers
     Dim playerYPosition As Integer = 13
-    Public Sub PlayerManager()
+    Public Sub PlayerManager() 'Ausgabe der animierten Spielfigur an der entsprechenden Position am Bildschirm
         If playerJumpHeight <> playerJumpHeightCache Then DrawPlayer(0, playerXPosition, playerYPosition - playerJumpHeightCache)
         DrawPlayer(playerAnimationState, playerXPosition, playerYPosition - playerJumpHeight)
         playerJumpHeightCache = playerJumpHeight
     End Sub
 
+    'Auswahl der Bausteine für den Boden (Hindernisse und der Weg)
     Public Sub DrawGround(groundState As Integer, groundAnchorX As Integer, groundAnchorY As Integer)
         Try
             Select Case groundState
@@ -436,30 +448,30 @@ Module Program
                     WriteAt("`", groundAnchorX, groundAnchorY)
             End Select
 
-        Catch e As ArgumentOutOfRangeException
+        Catch e As ArgumentOutOfRangeException 'Fallback
             Console.Clear()
             Console.WriteLine(e.Message)
         End Try
     End Sub
 
-    Public Class Tile
+    Public Class Tile 'Bodenstück
         Public Property tileType As Integer
     End Class
 
-    Public groundTiles As New List(Of Tile)
-    Public Sub GroundArraySetUp()
+    Public groundTiles As New List(Of Tile) 'Liste bestehend aus Bodenstücken
+    Public Sub GroundArraySetUp() 'befüllen der Liste mit Bodenstücken beim Rundenstart
         groundTiles.Clear()
         For i = 0 To 99
-            groundTiles.Add(New Tile With {.tileType = 0})
+            groundTiles.Add(New Tile With {.tileType = 0}) 'Bestückung mit Bodenstücken des Standarttyps (kein Hindernis)
         Next
     End Sub
 
-    Public Sub GroundManager()
+    Public Sub GroundManager() 'Ausgabe der Bodenstückliste in der Konsole
         For index As Integer = groundTiles.Count - 1 To 0 Step -1
-            DrawGround($"{groundTiles(index).tileType} ", index, 19)
+            DrawGround($"{groundTiles(index).tileType} ", index, 19) 'nicht denken, maaalen
         Next
-        If groundTiles(6).tileType = 1 Then
-            If playerJumpHeight < 2 Then
+        If groundTiles(6).tileType = 1 Then 'wenn an Position des Players ein Hindernis ist, wird geprüft ob Spielfigur am Boden ist. Wenn ja, Game Over; Wenn nein, Score +1.
+            If playerJumpHeight < 0.2 Then
                 stayInLoop = False
             Else
                 score += 1
@@ -468,11 +480,11 @@ Module Program
     End Sub
 
 
-    Public stayInLoop As Boolean = True
-    Public playerAnimationState As Integer
-    Public playerJump As Boolean
-    Public playerJumpHeight As Integer
-    Public Function AsyncLoop() As Task
+    Public stayInLoop As Boolean = True 'solange True, bis Runde beendet werden soll
+    Public playerAnimationState As Integer 'speichert den vorherigen Frame der Animation des Players
+    Public playerJump As Boolean 'True, wenn Sprunganimation gestartet werden soll
+    Public playerJumpHeight As Integer 'Sprunghöhe des Spielers
+    Public Function AsyncLoop() As Task   'Starten von verschiedenen Asynchronen Schleifen/Prozessen
         Dim taskA = Task.Run(AddressOf RenderLoop)
         Dim taskB = Task.Run(AddressOf Timer)
         Dim taskC = Task.Run(AddressOf KeyImput)
@@ -483,39 +495,42 @@ Module Program
     End Function
 
     Public Sub RenderLoop()
-        While stayInLoop
+        My.Computer.Audio.Play("23DB05PJ_music_v1.02.wav", AudioPlayMode.BackgroundLoop) 'Sound
+
+        While stayInLoop 'solange true, wird Spieloberfläche gerendert
             DrawStats()
             PlayerManager()
             GroundManager()
             Threading.Thread.Sleep(1)
         End While
     End Sub
-    Public Sub Timer()
+    Public Sub Timer() 'zählt ab Rundenbeginn Spielsekunden hoch
         While stayInLoop
             gameTimer += 1
             Threading.Thread.Sleep(1000)
         End While
     End Sub
-    Public Sub KeyImput()
+    Public Sub KeyImput() 'Abfrage der Tastaturabfrage
         Dim cki As ConsoleKeyInfo
         While stayInLoop
             cki = Console.ReadKey()
-            If (cki.Key = 32) <> 0 Then playerJump = True
-            If (cki.Modifiers And ConsoleModifiers.Control And cki.Key = 67) <> 0 Then stayInLoop = False
+            If (cki.Key = 32) <> 0 Then playerJump = True 'Key32=Lertaste; wenn Leertaste gedrückt wird: setzen der Sprungvariable auf True
+            If (cki.Modifiers And ConsoleModifiers.Control And cki.Key = 67) <> 0 Then stayInLoop = False 'Abfrage bei Tastenkombination "Strg C" beenden der Runde
         End While
     End Sub
 
-    Public animateJump As Boolean = False
+    Public animateJump As Boolean = False 'Variable ist True sofern sich der Spieler aktiv in einem Sprung befindet
     Public Sub PlayerAnimator()
         While stayInLoop
-            If playerJumpHeight < 1 And playerJump Then
-                animateJump = True
+            If playerJumpHeight < 0.1 And playerJump Then 'wenn sich der Spieler in Bodennähe befindet und ein Sprung initiiert wurde, dann startet Sprunganimation
+                My.Computer.Audio.Play("23DB05PJ_sfxJump_v1.01_1.wav", AudioPlayMode.Background) 'Sound
+                animateJump = True 'Spieler befindet sich im Sprung: animateJump = True
                 playerJump = False
             End If
-            If animateJump Then
+            If animateJump Then 'bewegt Spielfigur nach oben bis maximale Spielersprunghöhe erreicht ist (springen)
                 If playerJumpHeight < 6 Then playerJumpHeight += 2
             Else
-                If playerJumpHeight > 0 Then playerJumpHeight -= 1
+                If playerJumpHeight > 0 Then playerJumpHeight -= 1 'Animation der Spielfigur in die Ausgangshöhe (landen)
             End If
             If playerJumpHeight > 5 Then animateJump = False
             If playerAnimationState = 7 Then
@@ -526,19 +541,19 @@ Module Program
             Threading.Thread.Sleep(60)
         End While
     End Sub
-    Public spawnTimer As Integer
+    Public spawnTimer As Integer 'Zeit zwischen Hindernissen
     Dim randomLowerBound As Integer = 0
     Dim randomUpperBound As Integer = 5
     Public Sub GroundAnimator()
         While stayInLoop
-            groundTiles.RemoveAt(0)
-            If spawnTimer > 150 Then
+            groundTiles.RemoveAt(0) 'entfernt das links außen positionierte Bodenstück der Bodenstückliste, fügt rechts außen ein Bodenstück aus der Bodenstcükliste hinzu
+            If spawnTimer > 150 Then 'sofern Zeit zwischen Hinderissen vestrichen ist, füge neues Hindernisstück zur Bodenstückliste hinzu
                 groundTiles.Add(New Tile With {.tileType = 1})
                 spawnTimer = 0
-            Else
+            Else 'andernfalls wird Bodenstück ohne Hindernis hinzugefügt
                 groundTiles.Add(New Tile With {.tileType = 0})
             End If
-            Randomize()
+            Randomize() 'variiere Zeit zwischen Hindernisspawns; Zeit verringert sich über die Spielzeit
             spawnTimer = (spawnTimer + CInt(Math.Floor((randomUpperBound - randomLowerBound + 1) * Rnd())) + randomLowerBound) + (score / 20)
 
             Threading.Thread.Sleep(17)
@@ -546,7 +561,7 @@ Module Program
     End Sub
 
 
-    Public Sub GameStart()
+    Public Sub GameStart() 'wird ausgeführt beim Start einer Runde; Zurücksetzen der Variablen
         Console.Clear()
         stayInLoop = True
         playerAnimationState = 0
@@ -563,18 +578,19 @@ Module Program
         AsyncLoop()
     End Sub
 
-    Public Sub GameOver()
+    Public Sub GameOver() 'wird ausgeführt bei Berührung der Spielfigur mit einem Hindernis; Ausgeben des Game-Over Bildschirms
+        My.Computer.Audio.Play("23DB05PJ_sfxDeath_v1.01(1).wav", AudioPlayMode.Background) 'Sound Tod
         Console.ForegroundColor = ConsoleColor.DarkRed
-        Beep()
         WriteAt("Game Over", 45, 8)
         Console.ForegroundColor = ConsoleColor.White
-        If score > highScore Then
+        If score > highScore Then 'Highscore wird ggf. gesetzt; Überprüfen ob Score der aktuellen Runde höher als Highscore ist
             highScore = score
             WriteAt("New Highscore", 43, 9)
         End If
         WriteAt("Double tap [Space] to Restart", 35, 11)
 
         'Quelle [https://stackoverflow.com/a/44519918/13324025]
+        'Abfrage Leertastendoppelklick für Spielneustart
         Dim kp As ConsoleKeyInfo
         Do
             If Console.KeyAvailable Then
@@ -585,18 +601,21 @@ Module Program
             End If
             Threading.Thread.Sleep(100)
         Loop While True
-        GameStart()
+        GameStart() 'bei Doppelklick der Leertaste Start neuer Runde
     End Sub
 
+
+
     Public Sub GameLoop()
-        GameStart()
+        GameStart() 'Start der ersten Runde
         While True
             GameOver()
         End While
     End Sub
 
+
     Public Sub Main()
-        ConsoleSetup(100, 20)
+        ConsoleSetup(100, 21)
         GameLoop()
     End Sub
 End Module
