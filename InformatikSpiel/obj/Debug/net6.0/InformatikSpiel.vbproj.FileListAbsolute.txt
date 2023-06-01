@@ -13,3 +13,18 @@ D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\refint
 D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.pdb
 D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.genruntimeconfig.cache
 D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\ref\InformatikSpiel.dll
+C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\InformatikSpiel.exe
+C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\InformatikSpiel.deps.json
+C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\InformatikSpiel.runtimeconfig.json
+C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\InformatikSpiel.dll
+C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\InformatikSpiel.pdb
+C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.vbproj.AssemblyReference.cache
+C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.AssemblyInfoInputs.cache
+C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.AssemblyInfo.vb
+C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.vbproj.CoreCompileInputs.cache
+C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.dll
+C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\refint\InformatikSpiel.dll
+C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.pdb
+C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.genruntimeconfig.cache
+C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\ref\InformatikSpiel.dll
