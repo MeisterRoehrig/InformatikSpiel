@@ -5,6 +5,8 @@ Imports System.Linq.Expressions
 Imports System.Net.NetworkInformation
 Imports System.Runtime.CompilerServices
 
+Imports System.Runtime.InteropServices
+
 
 Module Module1
 
@@ -472,9 +474,16 @@ Module Module1
         Next
         If groundTiles(6).tileType = 1 Then 'wenn an Position des Players ein Hindernis ist, wird geprüft ob Spielfigur am Boden ist. Wenn ja, Game Over; Wenn nein, Score +1.
             If playerJumpHeight < 0.2 Then
+                playDethSound = True
                 stayInLoop = False
             Else
                 score += 1
+                playScoreSound = True
+                If isDivisible(score, 10) Then
+
+                    Debug.WriteLine("True")
+                    playBigScoreSound = True
+                End If
             End If
         End If
     End Sub
@@ -490,13 +499,12 @@ Module Module1
         Dim taskC = Task.Run(AddressOf KeyImput)
         Dim taskD = Task.Run(AddressOf PlayerAnimator)
         Dim taskE = Task.Run(AddressOf GroundAnimator)
+        Dim taskF = Task.Run(AddressOf SoundManager)
 
         Task.WaitAll(taskA, taskB)
     End Function
 
     Public Sub RenderLoop()
-        My.Computer.Audio.Play("23DB05PJ_music_v1.02.wav", AudioPlayMode.BackgroundLoop) 'Sound
-
         While stayInLoop 'solange true, wird Spieloberfläche gerendert
             DrawStats()
             PlayerManager()
@@ -508,6 +516,44 @@ Module Module1
         While stayInLoop
             gameTimer += 1
             Threading.Thread.Sleep(1000)
+        End While
+    End Sub
+
+    Public playJumpSound As Boolean = False
+    Public playBackgroundSound As Boolean = False
+    Public playDethSound As Boolean = False
+    Public playScoreSound As Boolean = False
+    Public playBigScoreSound As Boolean = False
+    Public Sub SoundManager()
+        Dim Snds As New MultiSounds
+        Snds.AddSound("Jump", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\23DB05PJ_sfxJump_v1.01_1.wav")
+        Snds.AddSound("Background", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\23DB05PJ_music_v1.02.wav")
+        Snds.AddSound("Deth", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\23DB05PJ_sfxDeath_v1.01(1).wav")
+        Snds.AddSound("Score", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\mixkit-cooking-bell-ding-1791.wav")
+        Snds.AddSound("BigScore", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\mixkit-retro-game-notification-212.wav")
+
+        Snds.Play("Background")
+        While stayInLoop
+            If playJumpSound Then
+                Snds.Play("Jump")
+                playJumpSound = False
+            End If
+            If playBackgroundSound Then
+                Snds.Play("Background")
+                playJumpSound = False
+            End If
+            If playDethSound Then
+                Snds.Play("Deth")
+                playDethSound = False
+            End If
+            If playScoreSound Then
+                Snds.Play("Score")
+                playScoreSound = False
+            End If
+            If playBigScoreSound Then
+                Snds.Play("BigScore")
+                playBigScoreSound = False
+            End If
         End While
     End Sub
     Public Sub KeyImput() 'Abfrage der Tastaturabfrage
@@ -523,7 +569,8 @@ Module Module1
     Public Sub PlayerAnimator()
         While stayInLoop
             If playerJumpHeight < 0.1 And playerJump Then 'wenn sich der Spieler in Bodennähe befindet und ein Sprung initiiert wurde, dann startet Sprunganimation
-                My.Computer.Audio.Play("23DB05PJ_sfxJump_v1.01_1.wav", AudioPlayMode.Background) 'Sound
+                '  My.Computer.Audio.Play("23DB05PJ_sfxJump_v1.01_1.wav", AudioPlayMode.Background) 'Sound
+                playJumpSound = True
                 animateJump = True 'Spieler befindet sich im Sprung: animateJump = True
                 playerJump = False
             End If
@@ -567,6 +614,11 @@ Module Module1
         playerAnimationState = 0
         playerJump = False
         animateJump = False
+        playJumpSound = False
+        playBackgroundSound = False
+        playDethSound = False
+        playScoreSound = False
+        playBigScoreSound = False
         playerJumpHeight = 0
         playerJumpHeightCache = 0
         spawnTimer = 0
@@ -579,7 +631,7 @@ Module Module1
     End Sub
 
     Public Sub GameOver() 'wird ausgeführt bei Berührung der Spielfigur mit einem Hindernis; Ausgeben des Game-Over Bildschirms
-        My.Computer.Audio.Play("23DB05PJ_sfxDeath_v1.01(1).wav", AudioPlayMode.Background) 'Sound Tod
+        'My.Computer.Audio.Play("23DB05PJ_sfxDeath_v1.01(1).wav", AudioPlayMode.Background) Sound Tod
         Console.ForegroundColor = ConsoleColor.DarkRed
         WriteAt("Game Over", 45, 8)
         Console.ForegroundColor = ConsoleColor.White
@@ -604,8 +656,6 @@ Module Module1
         GameStart() 'bei Doppelklick der Leertaste Start neuer Runde
     End Sub
 
-
-
     Public Sub GameLoop()
         GameStart() 'Start der ersten Runde
         While True
@@ -618,5 +668,5 @@ Module Module1
         ConsoleSetup(100, 21)
         GameLoop()
     End Sub
-End Module
 
+End Module

@@ -4,6 +4,10 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>InformatikSpiel</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
+    <ImportedNamespaces>Microsoft.VisualBasic=True,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,System.Xml.Linq=True,System.Threading.Tasks=True,InformatikSpiel=True</ImportedNamespaces>
+    <UseApplicationFramework>False</UseApplicationFramework>
+    <UseWindowsForms>False</UseWindowsForms>
+    <UseWPF>False</UseWPF>
   </PropertyGroup>
 
 </Project>

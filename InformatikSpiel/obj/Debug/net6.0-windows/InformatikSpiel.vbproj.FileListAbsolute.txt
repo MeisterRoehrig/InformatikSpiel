@@ -1,0 +1,5 @@
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0-windows\InformatikSpiel.vbproj.AssemblyReference.cache
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0-windows\InformatikSpiel.GeneratedMSBuildEditorConfig.editorconfig
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0-windows\InformatikSpiel.AssemblyInfoInputs.cache
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0-windows\InformatikSpiel.AssemblyInfo.vb
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0-windows\InformatikSpiel.vbproj.CoreCompileInputs.cache
