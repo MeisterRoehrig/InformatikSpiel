@@ -1,5 +1,6 @@
 ﻿Imports System.Runtime.InteropServices
 
+'Quelle [https://social.msdn.microsoft.com/Forums/vstudio/en-US/39b40b77-4d09-4adb-a728-18eb4397a155/play-multiple-audio-files-at-once-visual-basic?forum=vbgeneral]
 Public Class MultiSounds
     Public Snds As New Dictionary(Of String, String)
     Public sndcnt As Integer = 0

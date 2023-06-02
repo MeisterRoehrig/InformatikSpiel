@@ -28,3 +28,11 @@ C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\Inf
 C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.pdb
 C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.genruntimeconfig.cache
 C:\Users\SIE5EF\Desktop\Duales Studium\2.Semester\Informatik\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\ref\InformatikSpiel.dll
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\FireSharp.dll
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\Microsoft.Threading.Tasks.Extensions.Desktop.dll
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\Microsoft.Threading.Tasks.Extensions.dll
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\Microsoft.Threading.Tasks.dll
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\System.Net.Http.Extensions.dll
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\System.Net.Http.Primitives.dll
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\net6.0\Newtonsoft.Json.dll
+D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\obj\Debug\net6.0\InformatikSpiel.vbproj.CopyComplete

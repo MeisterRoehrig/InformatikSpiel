@@ -4,9 +4,7 @@ Imports System.IO
 Imports System.Linq.Expressions
 Imports System.Net.NetworkInformation
 Imports System.Runtime.CompilerServices
-
 Imports System.Runtime.InteropServices
-
 
 Module Module1
 
@@ -475,6 +473,7 @@ Module Module1
         If groundTiles(6).tileType = 1 Then 'wenn an Position des Players ein Hindernis ist, wird geprüft ob Spielfigur am Boden ist. Wenn ja, Game Over; Wenn nein, Score +1.
             If playerJumpHeight < 0.2 Then
                 playDethSound = True
+                gameOverBoolean = True
                 stayInLoop = False
             Else
                 score += 1
@@ -490,19 +489,24 @@ Module Module1
     End Sub
 
 
-    Public stayInLoop As Boolean = True 'solange True, bis Runde beendet werden soll
+    Public stayInLoop As Boolean = False 'solange True, bis Runde beendet werden soll
+    Public gameOverBoolean As Boolean = False
     Public playerAnimationState As Integer 'speichert den vorherigen Frame der Animation des Players
     Public playerJump As Boolean 'True, wenn Sprunganimation gestartet werden soll
     Public playerJumpHeight As Integer 'Sprunghöhe des Spielers
-    Public Function AsyncLoop() As Task   'Starten von verschiedenen Asynchronen Schleifen/Prozessen
+    Public Function AsyncLoopRound() As Task   'Starten von verschiedenen Asynchronen Schleifen/Prozessen
         Dim taskA = Task.Run(AddressOf RenderLoop)
         Dim taskB = Task.Run(AddressOf Timer)
-        Dim taskC = Task.Run(AddressOf KeyImput)
-        Dim taskD = Task.Run(AddressOf PlayerAnimator)
-        Dim taskE = Task.Run(AddressOf GroundAnimator)
+        Dim taskC = Task.Run(AddressOf PlayerAnimator)
+        Dim taskD = Task.Run(AddressOf GroundAnimator)
+
+        Task.WaitAll(taskA)
+    End Function
+
+    Public Function AsyncLoopGame() As Task   'Starten von verschiedenen Asynchronen Schleifen/Prozessen
+        Dim taskE = Task.Run(AddressOf KeyImput)
         Dim taskF = Task.Run(AddressOf SoundManager)
 
-        Task.WaitAll(taskA, taskB)
     End Function
 
     Public Sub RenderLoop()
@@ -534,7 +538,7 @@ Module Module1
             Snds.AddSound("Deth", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\23DB05PJ_sfxDeath_v1.01(1).wav")
             Snds.AddSound("Score", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\mixkit-cooking-bell-ding-1791.wav")
             Snds.AddSound("BigScore", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\mixkit-retro-game-notification-212.wav")
-            Snds.Play("Background")
+            'Snds.Play("Background")
             initiateSounds = False
         End If
 
@@ -563,9 +567,24 @@ Module Module1
     End Sub
     Public Sub KeyImput() 'Abfrage der Tastaturabfrage
         Dim cki As ConsoleKeyInfo
-        While stayInLoop
+        While True
             cki = Console.ReadKey()
-            If (cki.Key = 32) <> 0 Then playerJump = True 'Key32=Lertaste; wenn Leertaste gedrückt wird: setzen der Sprungvariable auf True
+            If (cki.Key = 32) <> 0 And stayInLoop Then
+                playerJump = True 'Key32=Lertaste; wenn Leertaste gedrückt wird: setzen der Sprungvariable auf True
+                Debug.WriteLine("playerJump = True")
+            End If
+            If (cki.Key = 32) <> 0 And stayInLoop = False Then
+                menuConfirm = True
+                Debug.WriteLine("menuConfirm = True")
+            End If
+            If (cki.Key = 38) <> 0 And stayInLoop = False Then
+                If menuCursorPosition > 0 Then menuCursorPosition -= 1
+                Debug.WriteLine("menuCursorPosition -= 1")
+            End If
+            If (cki.Key = 40) <> 0 And stayInLoop = False Then
+                If menuCursorPosition < 3 Then menuCursorPosition += 1
+                Debug.WriteLine("menuCursorPosition += 1")
+            End If
             If (cki.Modifiers And ConsoleModifiers.Control And cki.Key = 67) <> 0 Then stayInLoop = False 'Abfrage bei Tastenkombination "Strg C" beenden der Runde
         End While
     End Sub
@@ -629,49 +648,88 @@ Module Module1
         spawnTimer = 0
         gameTimer = 0
         gameTimerCache = 0
+        gameOverBoolean = False
         fps = 0
         score = 0
         GroundArraySetUp()
-        AsyncLoop()
+        AsyncLoopRound()
     End Sub
 
     Public Sub GameOver() 'wird ausgeführt bei Berührung der Spielfigur mit einem Hindernis; Ausgeben des Game-Over Bildschirms
         'My.Computer.Audio.Play("23DB05PJ_sfxDeath_v1.01(1).wav", AudioPlayMode.Background) Sound Tod
         Console.ForegroundColor = ConsoleColor.DarkRed
-        WriteAt("Game Over", 45, 8)
+        WriteAt("Game Over", 45, 4)
         Console.ForegroundColor = ConsoleColor.White
         If score > highScore Then 'Highscore wird ggf. gesetzt; Überprüfen ob Score der aktuellen Runde höher als Highscore ist
             highScore = score
-            WriteAt("New Highscore", 43, 9)
+            WriteAt("New Highscore", 43, 5)
         End If
-        WriteAt("Double tap [Space] to Restart", 35, 11)
-
-        'Quelle [https://stackoverflow.com/a/44519918/13324025]
-        'Abfrage Leertastendoppelklick für Spielneustart
-        Dim kp As ConsoleKeyInfo
-        Do
-            If Console.KeyAvailable Then
-                kp = Console.ReadKey(True)
-                If kp.Key = 32 Then
-                    Exit Do
-                End If
-            End If
-            Threading.Thread.Sleep(100)
-        Loop While True
-        GameStart() 'bei Doppelklick der Leertaste Start neuer Runde
     End Sub
 
-    Public Sub GameLoop()
-        GameStart() 'Start der ersten Runde
+    Public menuCursorPosition As Integer = 0
+    Public menuConfirm As Boolean = False
+    Public Sub MenuLoop()
         While True
-            GameOver()
+            If menuConfirm Then
+                If menuCursorPosition = 0 Then
+                    GameStart()
+                    GameOver()
+                End If
+                menuConfirm = False
+            End If
+
+            If menuCursorPosition = 0 Then
+                Console.ForegroundColor = ConsoleColor.Blue
+                WriteAt(">", 43, 7)
+                If gameOverBoolean Then
+                    WriteAt("Play Again", 45, 7)
+                Else
+                    WriteAt("Play", 45, 7)
+                End If
+
+                Console.ForegroundColor = ConsoleColor.White
+            Else
+                WriteAt(" ", 43, 7)
+                If gameOverBoolean Then
+                    WriteAt("Play Again", 45, 7)
+                Else
+                    WriteAt("Play", 45, 7)
+                End If
+            End If
+            If menuCursorPosition = 1 Then
+                Console.ForegroundColor = ConsoleColor.Blue
+                WriteAt(">", 43, 9)
+                WriteAt("Tutorial", 45, 9)
+                Console.ForegroundColor = ConsoleColor.White
+            Else
+                WriteAt(" ", 43, 9)
+                WriteAt("Tutorial", 45, 9)
+            End If
+            If menuCursorPosition = 2 Then
+                Console.ForegroundColor = ConsoleColor.Blue
+                WriteAt(">", 43, 10)
+                WriteAt("Audio Enabled", 45, 10)
+                Console.ForegroundColor = ConsoleColor.White
+            Else
+                WriteAt(" ", 43, 10)
+                WriteAt("Audio Enabled", 45, 10)
+            End If
+            If menuCursorPosition = 3 Then
+                Console.ForegroundColor = ConsoleColor.Blue
+                WriteAt(">", 43, 11)
+                WriteAt("Credits", 45, 11)
+                Console.ForegroundColor = ConsoleColor.White
+            Else
+                WriteAt(" ", 43, 11)
+                WriteAt("Credits", 45, 11)
+            End If
         End While
     End Sub
 
-
     Public Sub Main()
         ConsoleSetup(100, 21)
-        GameLoop()
+        AsyncLoopGame()
+        MenuLoop()
     End Sub
 
 End Module
