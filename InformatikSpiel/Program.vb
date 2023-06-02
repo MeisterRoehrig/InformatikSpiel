@@ -478,11 +478,12 @@ Module Module1
                 stayInLoop = False
             Else
                 score += 1
-                playScoreSound = True
                 If isDivisible(score, 10) Then
 
                     Debug.WriteLine("True")
                     playBigScoreSound = True
+                Else
+                    playScoreSound = True
                 End If
             End If
         End If
@@ -524,16 +525,20 @@ Module Module1
     Public playDethSound As Boolean = False
     Public playScoreSound As Boolean = False
     Public playBigScoreSound As Boolean = False
+    Public initiateSounds As Boolean = True
+    Dim Snds As New MultiSounds
     Public Sub SoundManager()
-        Dim Snds As New MultiSounds
-        Snds.AddSound("Jump", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\23DB05PJ_sfxJump_v1.01_1.wav")
-        Snds.AddSound("Background", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\23DB05PJ_music_v1.02.wav")
-        Snds.AddSound("Deth", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\23DB05PJ_sfxDeath_v1.01(1).wav")
-        Snds.AddSound("Score", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\mixkit-cooking-bell-ding-1791.wav")
-        Snds.AddSound("BigScore", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\mixkit-retro-game-notification-212.wav")
+        If initiateSounds Then
+            Snds.AddSound("Jump", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\23DB05PJ_sfxJump_v1.01_1.wav")
+            Snds.AddSound("Background", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\23DB05PJ_music_v1.02.wav")
+            Snds.AddSound("Deth", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\23DB05PJ_sfxDeath_v1.01(1).wav")
+            Snds.AddSound("Score", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\mixkit-cooking-bell-ding-1791.wav")
+            Snds.AddSound("BigScore", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\mixkit-retro-game-notification-212.wav")
+            Snds.Play("Background")
+            initiateSounds = False
+        End If
 
-        Snds.Play("Background")
-        While stayInLoop
+        While True
             If playJumpSound Then
                 Snds.Play("Jump")
                 playJumpSound = False
