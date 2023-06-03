@@ -1,8 +1,6 @@
-'importieren von Bibliotheken
 Imports System
 Imports System.IO
 Imports System.Linq.Expressions
-Imports System.Net.Mime.MediaTypeNames
 Imports System.Net.NetworkInformation
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
@@ -13,7 +11,7 @@ Module Module1
     Dim origRow, origCol As Integer
     'Funktion zur Ausgabe eines Zeichens an einer bestimmten Position der Konsole
     's ist das zu schreibende Zeichen; x und y sind die Koordinaten
-    Public Sub WriteAt(s As String, x As Integer, y As Integer)
+    Private Sub WriteAt(s As String, x As Integer, y As Integer)
         Try
             Console.SetCursorPosition(origCol + x, origRow + y)
             Console.Write(s)
@@ -23,7 +21,6 @@ Module Module1
         End Try
     End Sub
 
-    ' Quelle [https://stackoverflow.com/a/4985870/13324025]
     'gibt aus ob Zahl ein ganzzahliger Teiler ist
     Function isDivisible(x As Integer, d As Integer) As Boolean
         Return (x Mod d) = 0
@@ -504,12 +501,6 @@ Module Module1
         Task.WaitAll(taskA)
     End Function
 
-    Public Function AsyncLoopGame() As Task   'Starten von verschiedenen Asynchronen Schleifen/Prozessen
-        Dim taskE = Task.Run(AddressOf KeyImput)
-        Dim taskF = Task.Run(AddressOf SoundManager)
-
-    End Function
-
     Public Sub RenderLoop()
         While stayInLoop 'solange true, wird Spieloberfläche gerendert
             DrawStats()
@@ -530,64 +521,9 @@ Module Module1
     Public playDethSound As Boolean = False
     Public playScoreSound As Boolean = False
     Public playBigScoreSound As Boolean = False
-    Public initiateSounds As Boolean = True
+
     Public inMenu As Boolean = True
     Dim Snds As New MultiSounds
-
-    Public Sub SoundManager()
-        If initiateSounds Then
-            Snds.AddSound("Jump", "jump.wav")
-            Snds.AddSound("Death", "death.wav")
-            Snds.AddSound("Score", "score.wav")
-            Snds.AddSound("BigScore", "bigscore.wav")
-            initiateSounds = False
-        End If
-
-        While True
-            If playJumpSound Then
-                Snds.Play("Jump")
-                playJumpSound = False
-            End If
-            If playBackgroundSound Then
-                Snds.Play("Background")
-                playJumpSound = False
-            End If
-            If playDethSound Then
-                Snds.Play("Death")
-                playDethSound = False
-            End If
-            If playScoreSound Then
-                Snds.Play("Score")
-                playScoreSound = False
-            End If
-            If playBigScoreSound Then
-                Snds.Play("BigScore")
-                playBigScoreSound = False
-            End If
-        End While
-    End Sub
-    Public Sub KeyImput() 'Abfrage der Tastaturabfrage
-        Dim cki As ConsoleKeyInfo
-        While True
-            cki = Console.ReadKey()
-            If (cki.Key = 32) <> 0 And stayInLoop Then
-                playerJump = True 'Key32=Lertaste; wenn Leertaste gedrückt wird: setzen der Sprungvariable auf True
-            End If
-            If (cki.Key = 32) <> 0 And stayInLoop = False Then
-                menuConfirm = True
-            End If
-            If (cki.Key = 13) <> 0 And stayInLoop = False Then
-                menuConfirm = True
-            End If
-            If (cki.Key = 38) <> 0 And stayInLoop = False Then
-                If menuCursorPosition > 0 Then menuCursorPosition -= 1
-            End If
-            If (cki.Key = 40) <> 0 And stayInLoop = False Then
-                If menuCursorPosition < 3 Then menuCursorPosition += 1
-            End If
-            If (cki.Modifiers And ConsoleModifiers.Control And cki.Key = 67) <> 0 Then stayInLoop = False 'Abfrage bei Tastenkombination "Strg C" beenden der Runde
-        End While
-    End Sub
 
     Public animateJump As Boolean = False 'Variable ist True sofern sich der Spieler aktiv in einem Sprung befindet
     Public Sub PlayerAnimator()
@@ -632,6 +568,64 @@ Module Module1
         End While
     End Sub
 
+    Public Function AsyncLoopGame() As Task   'Starten von verschiedenen Asynchronen Schleifen/Prozessen
+        Dim taskE = Task.Run(AddressOf KeyImput)
+        Dim taskF = Task.Run(AddressOf SoundManager)
+    End Function
+
+    Dim initiateSounds As Boolean = True
+    Public Sub SoundManager()
+        If initiateSounds Then
+            Snds.AddSound("Jump", "jump.wav")
+            Snds.AddSound("Death", "death.wav")
+            Snds.AddSound("Score", "score.wav")
+            Snds.AddSound("BigScore", "bigscore.wav")
+            initiateSounds = False
+        End If
+
+        While True
+            If playJumpSound Then
+                Snds.Play("Jump")
+                playJumpSound = False
+            End If
+            If playDethSound Then
+                Snds.Play("Death")
+                playDethSound = False
+            End If
+            If playScoreSound Then
+                Snds.Play("Score")
+                playScoreSound = False
+            End If
+            If playBigScoreSound Then
+                Snds.Play("BigScore")
+                playBigScoreSound = False
+            End If
+        End While
+    End Sub
+
+    Public Sub KeyImput() 'Abfrage der Tastaturabfrage
+        Dim consoleKey As ConsoleKeyInfo
+        While True
+            consoleKey = Console.ReadKey()
+            If (consoleKey.Key = 32) <> 0 And stayInLoop Then   'Key32=Lertaste; wenn Leertaste gedrückt wird: setzen der Sprungvariable auf True
+                playerJump = True
+            End If
+            If (consoleKey.Key = 32) <> 0 And stayInLoop = False Then
+                menuConfirm = True
+            End If
+            If (consoleKey.Key = 13) <> 0 And stayInLoop = False Then
+                menuConfirm = True
+            End If
+            If (consoleKey.Key = 38) <> 0 And stayInLoop = False Then
+                If menuCursorPosition > 0 Then menuCursorPosition -= 1
+            End If
+            If (consoleKey.Key = 40) <> 0 And stayInLoop = False Then
+                If menuCursorPosition < 3 Then menuCursorPosition += 1
+            End If
+            If (consoleKey.Modifiers And ConsoleModifiers.Control And consoleKey.Key = 67) <> 0 Then stayInLoop = False 'Abfrage bei Tastenkombination "Strg C" beenden der Runde
+        End While
+    End Sub
+
 
     Public Sub GameStart() 'wird ausgeführt beim Start einer Runde; Zurücksetzen der Variablen
         Console.Clear()
@@ -661,33 +655,24 @@ Module Module1
     End Sub
 
     Public Sub SaveSettings(ByVal spielZurücksetzen As Boolean)
-        ' System.IO.File.WriteAllText("musicsettings.txt", "1")
+        Try
+            System.IO.File.WriteAllText("musicsettings.txt", spielZurücksetzen)
+        Catch ex As Exception
+            Debug.WriteLine("musicsettings.txt could not be reached")
+        End Try
     End Sub
 
     Public Function LoadSettings() As Boolean
-        Using writer As New StreamWriter("musicsettings.txt", True)
-            Dim line As Boolean
+        Dim line As Boolean = True
+        Try
             Using reader As New StreamReader("musicsettings.txt")
-                line = Convert.ToBoolean(reader.ReadLine().ToString())
+                line = Convert.ToBoolean(reader.ReadLine())
             End Using
-            Return line
-        End Using
+        Catch ex As Exception
+            Debug.WriteLine("musicsettings.txt could not be reached")
+        End Try
+        Return line
     End Function
-
-    Public Function SaveHighscore()
-        Using writer As New StreamWriter("highscore.txt", True)
-            writer.WriteLine("Important data line 1")
-        End Using
-    End Function
-
-    Public Function ReadHighscore()
-        Dim line As String
-        Using reader As New StreamReader("highscore.txt")
-            line = reader.ReadLine()
-        End Using
-        Console.WriteLine(line)
-    End Function
-
 
     Public Sub GameOver() 'wird ausgeführt bei Berührung der Spielfigur mit einem Hindernis; Ausgeben des Game-Over Bildschirms
         'My.Computer.Audio.Play("23DB05PJ_sfxDeath_v1.01(1).wav", AudioPlayMode.Background) Sound Tod
@@ -734,25 +719,27 @@ Module Module1
     End Sub
 
 
-    Public musicEnabled As Boolean = True
+    Public musicEnabled As Boolean = LoadSettings()
     Public Sub ToggleAudio()
         If musicEnabled Then
             musicEnabled = False
+            SaveSettings(False)
             menuloopSound.StopPlaying()
         Else
             musicEnabled = True
+            SaveSettings(True)
             menuloopSound.PlayLoop()
         End If
     End Sub
 
 
-    Public menuloopSound As New MciPlayer("menuloop.mp3", "1")
-    Public gamemusicSound As New MciPlayer("music.mp3", "2")
+    Dim menuloopSound As New MciPlayer("menuloop.mp3", "1")
+    Dim gamemusicSound As New MciPlayer("music.mp3", "2")
 
-    Public menuCursorPosition As Integer = 0
-    Public menuConfirm As Boolean = False
+    Dim menuCursorPosition As Integer = 0
+    Dim menuConfirm As Boolean = False
     Public Sub MenuLoop()
-        menuloopSound.PlayLoop()
+        If musicEnabled Then menuloopSound.PlayLoop()
         While True
             If menuConfirm Then
                 menuConfirm = False
@@ -828,8 +815,6 @@ Module Module1
 
 
     Public Sub Main()
-        'SaveSettings(True)
-        Debug.WriteLine(LoadSettings())
         ConsoleSetup(100, 21)
         AsyncLoopGame()
         MenuLoop()
