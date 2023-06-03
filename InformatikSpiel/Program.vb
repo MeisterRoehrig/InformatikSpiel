@@ -7,13 +7,17 @@ Imports System.Runtime.InteropServices
 Imports InformatikSpiel.MCIDEMO
 
 Module Module1
-
-    Dim origRow, origCol As Integer
     'Funktion zur Ausgabe eines Zeichens an einer bestimmten Position der Konsole
     's ist das zu schreibende Zeichen; x und y sind die Koordinaten
-    Private Sub WriteAt(s As String, x As Integer, y As Integer)
+    Private Sub WriteAt(s As String, x As Integer, y As Integer, Optional CenterHorizontally As Boolean = False, Optional CenterVertically As Boolean = False)
         Try
-            Console.SetCursorPosition(origCol + x, origRow + y)
+            If CenterHorizontally Then
+                x = (consoleWidth / 2) - (Len(s) / 2) + x
+            End If
+            If CenterVertically Then
+                y = (consoleHeight / 2) + y
+            End If
+            Console.SetCursorPosition(x, y)
             Console.Write(s)
         Catch e As ArgumentOutOfRangeException 'Fallback (Bei ungültiger Eingabe)
             Console.Clear()
@@ -22,7 +26,7 @@ Module Module1
     End Sub
 
     'gibt aus ob Zahl ein ganzzahliger Teiler ist
-    Function isDivisible(x As Integer, d As Integer) As Boolean
+    Private Function isDivisible(x As Integer, d As Integer) As Boolean
         Return (x Mod d) = 0
     End Function
 
@@ -681,11 +685,11 @@ Module Module1
             menuloopSound.PlayLoop()
         End If
         Console.ForegroundColor = ConsoleColor.DarkRed
-        WriteAt("Game Over", 45, 4)
+        WriteAt("Game Over", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
         Console.ForegroundColor = ConsoleColor.White
         If score > highScore Then 'Highscore wird ggf. gesetzt; Überprüfen ob Score der aktuellen Runde höher als Highscore ist
             highScore = score
-            WriteAt("New Highscore", 43, 5)
+            WriteAt("New Highscore", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
         End If
     End Sub
 
@@ -695,8 +699,8 @@ Module Module1
             Console.ForegroundColor = ConsoleColor.Blue
             WriteAt("> Back", 3, 1)
             Console.ForegroundColor = ConsoleColor.White
-            WriteAt("Drücke Leertaste um zu springen und Hindernissen auszuweichen", 10, 8)
-            WriteAt("Ziel ist es eine möglichst große Strecke zurückzulegen ohne ein Hinderniss zu berühren.", 10, 9)
+            WriteAt("Drücke Leertaste um zu springen und Hindernissen auszuweichen", x:=0, y:=0, CenterHorizontally:=True, CenterVertically:=True)
+            WriteAt("Ziel ist es eine möglichst große Strecke zurückzulegen ohne ein Hinderniss zu berühren.", x:=0, y:=1, CenterHorizontally:=True, CenterVertically:=True)
         End While
         menuConfirm = False
         Console.Clear()
@@ -708,11 +712,11 @@ Module Module1
             Console.ForegroundColor = ConsoleColor.Blue
             WriteAt("> Back", 3, 1)
             Console.ForegroundColor = ConsoleColor.White
-            WriteAt("TWE-22", 40, 7)
-            WriteAt("Philipp Brocher", 40, 9)
-            WriteAt("Erik Siegel", 40, 10)
-            WriteAt("Linus von Maltzan", 40, 11)
-            WriteAt("Musik: Pochers Dude", 40, 13)
+            WriteAt("TWE-22", (consoleWidth / 2) - 8, (consoleHeight / 2) - 3)
+            WriteAt("Philipp Brocher", (consoleWidth / 2) - 8, (consoleHeight / 2) - 1)
+            WriteAt("Erik Siegel", (consoleWidth / 2) - 8, (consoleHeight / 2))
+            WriteAt("Linus von Maltzan", (consoleWidth / 2) - 8, (consoleHeight / 2) + 1)
+            WriteAt("Musik: Pochers Dude", (consoleWidth / 2) - 8, (consoleHeight / 2) + 2)
         End While
         menuConfirm = False
         Console.Clear()
@@ -760,64 +764,67 @@ Module Module1
 
             If menuCursorPosition = 0 Then
                 Console.ForegroundColor = ConsoleColor.Blue
-                WriteAt("> ", 43, 7)
+                WriteAt("> ", (consoleWidth / 2) - 7, (consoleHeight / 2) - 3)
                 If gameOverBoolean Then
-                    WriteAt("Play Again  ", 45, 7)
+                    WriteAt("Play Again   ", (consoleWidth / 2) - 5, (consoleHeight / 2) - 3)
                 Else
-                    WriteAt("Play  ", 45, 7)
+                    WriteAt("Play   ", (consoleWidth / 2) - 5, (consoleHeight / 2) - 3)
                 End If
                 Console.ForegroundColor = ConsoleColor.White
             Else
-                WriteAt("  ", 43, 7)
+                WriteAt("  ", (consoleWidth / 2) - 7, (consoleHeight / 2) - 3)
                 If gameOverBoolean Then
-                    WriteAt("Play Again  ", 45, 7)
+                    WriteAt("Play Again   ", (consoleWidth / 2) - 5, (consoleHeight / 2) - 3)
                 Else
-                    WriteAt("Play  ", 45, 7)
+                    WriteAt("Play   ", (consoleWidth / 2) - 5, (consoleHeight / 2) - 3)
                 End If
             End If
             If menuCursorPosition = 1 Then
                 Console.ForegroundColor = ConsoleColor.Blue
-                WriteAt("> ", 43, 9)
-                WriteAt("How to Play  ", 45, 9)
+                WriteAt("> ", (consoleWidth / 2) - 7, (consoleHeight / 2) - 1)
+                WriteAt("How to Play   ", (consoleWidth / 2) - 5, (consoleHeight / 2) - 1)
                 Console.ForegroundColor = ConsoleColor.White
             Else
-                WriteAt("  ", 43, 9)
-                WriteAt("How to Play  ", 45, 9)
+                WriteAt("  ", (consoleWidth / 2) - 7, (consoleHeight / 2) - 1)
+                WriteAt("How to Play   ", (consoleWidth / 2) - 5, (consoleHeight / 2) - 1)
             End If
             If menuCursorPosition = 2 Then
                 Console.ForegroundColor = ConsoleColor.Blue
-                WriteAt("> ", 43, 10)
+                WriteAt("> ", (consoleWidth / 2) - 7, (consoleHeight / 2))
                 If musicEnabled Then
-                    WriteAt("Music Enabled   ", 45, 10)
+                    WriteAt("Music Enabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2))
                 Else
-                    WriteAt("Music Disabled   ", 45, 10)
+                    WriteAt("Music Disabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2))
                 End If
                 Console.ForegroundColor = ConsoleColor.White
             Else
-                WriteAt("  ", 43, 10)
+                WriteAt("  ", (consoleWidth / 2) - 7, (consoleHeight / 2))
                 If musicEnabled Then
-                    WriteAt("Music Enabled   ", 45, 10)
+                    WriteAt("Music Enabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2))
                 Else
-                    WriteAt("Music Disabled   ", 45, 10)
+                    WriteAt("Music Disabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2))
                 End If
             End If
             If menuCursorPosition = 3 Then
                 Console.ForegroundColor = ConsoleColor.Blue
-                WriteAt("> ", 43, 11)
-                WriteAt("Credits  ", 45, 11)
+                WriteAt("> ", (consoleWidth / 2) - 7, (consoleHeight / 2) + 1)
+                WriteAt("Credits   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 1)
                 Console.ForegroundColor = ConsoleColor.White
             Else
-                WriteAt("  ", 43, 11)
-                WriteAt("Credits  ", 45, 11)
+                WriteAt("  ", (consoleWidth / 2) - 7, (consoleHeight / 2) + 1)
+                WriteAt("Credits   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 1)
             End If
         End While
     End Sub
 
+    Public consoleWidth As Integer = 100
+    Public consoleHeight As Integer = 22
 
     Public Sub Main()
-        ConsoleSetup(100, 21)
+        ConsoleSetup(consoleWidth, consoleHeight)
         AsyncLoopGame()
         MenuLoop()
+        Console.ReadKey()
     End Sub
 
 End Module
