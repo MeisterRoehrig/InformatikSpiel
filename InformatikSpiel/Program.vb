@@ -2,9 +2,11 @@
 Imports System
 Imports System.IO
 Imports System.Linq.Expressions
+Imports System.Net.Mime.MediaTypeNames
 Imports System.Net.NetworkInformation
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
+Imports InformatikSpiel.MCIDEMO
 
 Module Module1
 
@@ -34,6 +36,7 @@ Module Module1
         Console.SetBufferSize(consoleWidth, consoleHeight)
         Console.CursorVisible = False
         Console.TreatControlCAsInput = True 'verhindert das Abbrechen des Programms durch Strg c: Fenster wird nicht geschlossen, GameOver wird angezeigt
+        Debug.WriteLine(AppDomain.CurrentDomain.BaseDirectory.ToString())
     End Sub
 
     Public gameTimer As Integer = 0 'verstrichene Zeit seit Spielbeginn (Rundenstart)
@@ -478,8 +481,6 @@ Module Module1
             Else
                 score += 1
                 If isDivisible(score, 10) Then
-
-                    Debug.WriteLine("True")
                     playBigScoreSound = True
                 Else
                     playScoreSound = True
@@ -530,15 +531,15 @@ Module Module1
     Public playScoreSound As Boolean = False
     Public playBigScoreSound As Boolean = False
     Public initiateSounds As Boolean = True
+    Public inMenu As Boolean = True
     Dim Snds As New MultiSounds
+
     Public Sub SoundManager()
         If initiateSounds Then
-            Snds.AddSound("Jump", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\23DB05PJ_sfxJump_v1.01_1.wav")
-            Snds.AddSound("Background", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\23DB05PJ_music_v1.02.wav")
-            Snds.AddSound("Deth", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\23DB05PJ_sfxDeath_v1.01(1).wav")
-            Snds.AddSound("Score", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\mixkit-cooking-bell-ding-1791.wav")
-            Snds.AddSound("BigScore", "D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Debug\mixkit-retro-game-notification-212.wav")
-            'Snds.Play("Background")
+            Snds.AddSound("Jump", "jump.wav")
+            Snds.AddSound("Death", "death.wav")
+            Snds.AddSound("Score", "score.wav")
+            Snds.AddSound("BigScore", "bigscore.wav")
             initiateSounds = False
         End If
 
@@ -552,7 +553,7 @@ Module Module1
                 playJumpSound = False
             End If
             If playDethSound Then
-                Snds.Play("Deth")
+                Snds.Play("Death")
                 playDethSound = False
             End If
             If playScoreSound Then
@@ -571,19 +572,18 @@ Module Module1
             cki = Console.ReadKey()
             If (cki.Key = 32) <> 0 And stayInLoop Then
                 playerJump = True 'Key32=Lertaste; wenn Leertaste gedrückt wird: setzen der Sprungvariable auf True
-                Debug.WriteLine("playerJump = True")
             End If
             If (cki.Key = 32) <> 0 And stayInLoop = False Then
                 menuConfirm = True
-                Debug.WriteLine("menuConfirm = True")
+            End If
+            If (cki.Key = 13) <> 0 And stayInLoop = False Then
+                menuConfirm = True
             End If
             If (cki.Key = 38) <> 0 And stayInLoop = False Then
                 If menuCursorPosition > 0 Then menuCursorPosition -= 1
-                Debug.WriteLine("menuCursorPosition -= 1")
             End If
             If (cki.Key = 40) <> 0 And stayInLoop = False Then
                 If menuCursorPosition < 3 Then menuCursorPosition += 1
-                Debug.WriteLine("menuCursorPosition += 1")
             End If
             If (cki.Modifiers And ConsoleModifiers.Control And cki.Key = 67) <> 0 Then stayInLoop = False 'Abfrage bei Tastenkombination "Strg C" beenden der Runde
         End While
@@ -595,6 +595,7 @@ Module Module1
             If playerJumpHeight < 0.1 And playerJump Then 'wenn sich der Spieler in Bodennähe befindet und ein Sprung initiiert wurde, dann startet Sprunganimation
                 '  My.Computer.Audio.Play("23DB05PJ_sfxJump_v1.01_1.wav", AudioPlayMode.Background) 'Sound
                 playJumpSound = True
+
                 animateJump = True 'Spieler befindet sich im Sprung: animateJump = True
                 playerJump = False
             End If
@@ -651,12 +652,49 @@ Module Module1
         gameOverBoolean = False
         fps = 0
         score = 0
+        If musicEnabled Then
+            menuloopSound.StopPlaying()
+            gamemusicSound.PlayLoop()
+        End If
         GroundArraySetUp()
         AsyncLoopRound()
     End Sub
 
+    Public Sub SaveSettings(ByVal spielZurücksetzen As Boolean)
+        ' System.IO.File.WriteAllText("musicsettings.txt", "1")
+    End Sub
+
+    Public Function LoadSettings() As Boolean
+        Using writer As New StreamWriter("musicsettings.txt", True)
+            Dim line As Boolean
+            Using reader As New StreamReader("musicsettings.txt")
+                line = Convert.ToBoolean(reader.ReadLine().ToString())
+            End Using
+            Return line
+        End Using
+    End Function
+
+    Public Function SaveHighscore()
+        Using writer As New StreamWriter("highscore.txt", True)
+            writer.WriteLine("Important data line 1")
+        End Using
+    End Function
+
+    Public Function ReadHighscore()
+        Dim line As String
+        Using reader As New StreamReader("highscore.txt")
+            line = reader.ReadLine()
+        End Using
+        Console.WriteLine(line)
+    End Function
+
+
     Public Sub GameOver() 'wird ausgeführt bei Berührung der Spielfigur mit einem Hindernis; Ausgeben des Game-Over Bildschirms
         'My.Computer.Audio.Play("23DB05PJ_sfxDeath_v1.01(1).wav", AudioPlayMode.Background) Sound Tod
+        If musicEnabled Then
+            gamemusicSound.StopPlaying()
+            menuloopSound.PlayLoop()
+        End If
         Console.ForegroundColor = ConsoleColor.DarkRed
         WriteAt("Game Over", 45, 4)
         Console.ForegroundColor = ConsoleColor.White
@@ -666,67 +704,132 @@ Module Module1
         End If
     End Sub
 
+    Public Sub HowToPlay()
+        Console.Clear()
+        While menuConfirm = False
+            Console.ForegroundColor = ConsoleColor.Blue
+            WriteAt("> Back", 3, 1)
+            Console.ForegroundColor = ConsoleColor.White
+            WriteAt("Drücke Leertaste um zu springen und Hindernissen auszuweichen", 10, 8)
+            WriteAt("Ziel ist es eine möglichst große Strecke zurückzulegen ohne ein Hinderniss zu berühren.", 10, 9)
+        End While
+        menuConfirm = False
+        Console.Clear()
+    End Sub
+
+    Public Sub Credits()
+        Console.Clear()
+        While menuConfirm = False
+            Console.ForegroundColor = ConsoleColor.Blue
+            WriteAt("> Back", 3, 1)
+            Console.ForegroundColor = ConsoleColor.White
+            WriteAt("TWE-22", 40, 7)
+            WriteAt("Philipp Brocher", 40, 9)
+            WriteAt("Erik Siegel", 40, 10)
+            WriteAt("Linus von Maltzan", 40, 11)
+            WriteAt("Musik: Pochers Dude", 40, 13)
+        End While
+        menuConfirm = False
+        Console.Clear()
+    End Sub
+
+
+    Public musicEnabled As Boolean = True
+    Public Sub ToggleAudio()
+        If musicEnabled Then
+            musicEnabled = False
+            menuloopSound.StopPlaying()
+        Else
+            musicEnabled = True
+            menuloopSound.PlayLoop()
+        End If
+    End Sub
+
+
+    Public menuloopSound As New MciPlayer("menuloop.mp3", "1")
+    Public gamemusicSound As New MciPlayer("music.mp3", "2")
+
     Public menuCursorPosition As Integer = 0
     Public menuConfirm As Boolean = False
     Public Sub MenuLoop()
+        menuloopSound.PlayLoop()
         While True
             If menuConfirm Then
+                menuConfirm = False
                 If menuCursorPosition = 0 Then
                     GameStart()
                     GameOver()
                 End If
-                menuConfirm = False
+                If menuCursorPosition = 1 Then
+                    HowToPlay()
+                End If
+                If menuCursorPosition = 2 Then
+                    ToggleAudio()
+                End If
+                If menuCursorPosition = 3 Then
+                    Credits()
+                End If
             End If
 
             If menuCursorPosition = 0 Then
                 Console.ForegroundColor = ConsoleColor.Blue
-                WriteAt(">", 43, 7)
+                WriteAt("> ", 43, 7)
                 If gameOverBoolean Then
-                    WriteAt("Play Again", 45, 7)
+                    WriteAt("Play Again  ", 45, 7)
                 Else
-                    WriteAt("Play", 45, 7)
+                    WriteAt("Play  ", 45, 7)
                 End If
-
                 Console.ForegroundColor = ConsoleColor.White
             Else
-                WriteAt(" ", 43, 7)
+                WriteAt("  ", 43, 7)
                 If gameOverBoolean Then
-                    WriteAt("Play Again", 45, 7)
+                    WriteAt("Play Again  ", 45, 7)
                 Else
-                    WriteAt("Play", 45, 7)
+                    WriteAt("Play  ", 45, 7)
                 End If
             End If
             If menuCursorPosition = 1 Then
                 Console.ForegroundColor = ConsoleColor.Blue
-                WriteAt(">", 43, 9)
-                WriteAt("Tutorial", 45, 9)
+                WriteAt("> ", 43, 9)
+                WriteAt("How to Play  ", 45, 9)
                 Console.ForegroundColor = ConsoleColor.White
             Else
-                WriteAt(" ", 43, 9)
-                WriteAt("Tutorial", 45, 9)
+                WriteAt("  ", 43, 9)
+                WriteAt("How to Play  ", 45, 9)
             End If
             If menuCursorPosition = 2 Then
                 Console.ForegroundColor = ConsoleColor.Blue
-                WriteAt(">", 43, 10)
-                WriteAt("Audio Enabled", 45, 10)
+                WriteAt("> ", 43, 10)
+                If musicEnabled Then
+                    WriteAt("Music Enabled   ", 45, 10)
+                Else
+                    WriteAt("Music Disabled   ", 45, 10)
+                End If
                 Console.ForegroundColor = ConsoleColor.White
             Else
-                WriteAt(" ", 43, 10)
-                WriteAt("Audio Enabled", 45, 10)
+                WriteAt("  ", 43, 10)
+                If musicEnabled Then
+                    WriteAt("Music Enabled   ", 45, 10)
+                Else
+                    WriteAt("Music Disabled   ", 45, 10)
+                End If
             End If
             If menuCursorPosition = 3 Then
                 Console.ForegroundColor = ConsoleColor.Blue
-                WriteAt(">", 43, 11)
-                WriteAt("Credits", 45, 11)
+                WriteAt("> ", 43, 11)
+                WriteAt("Credits  ", 45, 11)
                 Console.ForegroundColor = ConsoleColor.White
             Else
-                WriteAt(" ", 43, 11)
-                WriteAt("Credits", 45, 11)
+                WriteAt("  ", 43, 11)
+                WriteAt("Credits  ", 45, 11)
             End If
         End While
     End Sub
 
+
     Public Sub Main()
+        'SaveSettings(True)
+        Debug.WriteLine(LoadSettings())
         ConsoleSetup(100, 21)
         AsyncLoopGame()
         MenuLoop()
