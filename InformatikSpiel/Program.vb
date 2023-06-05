@@ -431,25 +431,46 @@ Module Module1
     'Sprung der Spielfigur über die Hindernisse
     Public playerJumpHeightCache As Integer 'Sprunghöhe!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
     Dim playerXPosition As Integer = 1 'Ausgangsposition des Spielers
-    Dim playerYPosition As Integer = 13
     Public Sub PlayerManager() 'Ausgabe der animierten Spielfigur an der entsprechenden Position am Bildschirm
-        If playerJumpHeight <> playerJumpHeightCache Then DrawPlayer(0, playerXPosition, playerYPosition - playerJumpHeightCache)
-        DrawPlayer(playerAnimationState, playerXPosition, playerYPosition - playerJumpHeight)
+        If playerJumpHeight <> playerJumpHeightCache Then DrawPlayer(0, playerXPosition, (consoleHeight - 7) - playerJumpHeightCache)
+        DrawPlayer(playerAnimationState, playerXPosition, (consoleHeight - 7) - playerJumpHeight)
         playerJumpHeightCache = playerJumpHeight
     End Sub
 
     'Auswahl der Bausteine für den Boden (Hindernisse und der Weg)
-    Public Sub DrawGround(groundState As Integer, groundAnchorX As Integer, groundAnchorY As Integer)
+    Public Sub DrawArray(groundState As Integer, groundAnchorX As Integer, groundAnchorY As Integer)
         Try
             Select Case groundState
                 Case 0
+                    WriteAt(" ", groundAnchorX, groundAnchorY - 3)
                     WriteAt(" ", groundAnchorX, groundAnchorY - 2)
                     WriteAt(" ", groundAnchorX, groundAnchorY - 1)
                     WriteAt("`", groundAnchorX, groundAnchorY)
                 Case 1
-                    WriteAt("V", groundAnchorX, groundAnchorY - 2)
-                    WriteAt("|", groundAnchorX, groundAnchorY - 1)
+                    WriteAt("[]", groundAnchorX, groundAnchorY - 2)
+                    WriteAt("[]", groundAnchorX, groundAnchorY - 1)
                     WriteAt("`", groundAnchorX, groundAnchorY)
+                Case 2
+                    WriteAt("[]", groundAnchorX, groundAnchorY - 2)
+                    WriteAt("[][]", groundAnchorX, groundAnchorY - 1)
+                    WriteAt("`", groundAnchorX, groundAnchorY)
+                Case 3
+                    WriteAt(" []", groundAnchorX, groundAnchorY - 2)
+                    WriteAt("[][]", groundAnchorX, groundAnchorY - 1)
+                    WriteAt("`", groundAnchorX, groundAnchorY)
+                Case 4
+                    WriteAt("[]", groundAnchorX, groundAnchorY - 2)
+                    WriteAt("||", groundAnchorX, groundAnchorY - 1)
+                    WriteAt("`", groundAnchorX, groundAnchorY)
+                Case 5
+                    WriteAt(" ", groundAnchorX, groundAnchorY - 2)
+                    WriteAt(" ", groundAnchorX, groundAnchorY - 1)
+                    WriteAt(" ", groundAnchorX, groundAnchorY)
+                Case 6
+                    WriteAt("   ___", groundAnchorX, groundAnchorY - 2)
+                    WriteAt(" _(   )", groundAnchorX, groundAnchorY - 1)
+                    WriteAt("(___)__)", groundAnchorX, groundAnchorY)
+
             End Select
 
         Catch e As ArgumentOutOfRangeException 'Fallback
@@ -463,31 +484,26 @@ Module Module1
     End Class
 
     Public groundTiles As New List(Of Tile) 'Liste bestehend aus Bodenstücken
-    Public Sub GroundArraySetUp() 'befüllen der Liste mit Bodenstücken beim Rundenstart
+    Public skyTiles As New List(Of Tile)
+    Public Sub ArraySetUp() 'befüllen der Liste mit Bodenstücken beim Rundenstart
         groundTiles.Clear()
-        For i = 0 To 99
+        For i = 0 To consoleWidth - 1
             groundTiles.Add(New Tile With {.tileType = 0}) 'Bestückung mit Bodenstücken des Standarttyps (kein Hindernis)
+        Next
+        skyTiles.Clear()
+        For i = 0 To consoleWidth - 1
+            skyTiles.Add(New Tile With {.tileType = 5}) 'Bestückung mit Bodenstücken des Standarttyps (kein Hindernis)
         Next
     End Sub
 
-    Public Sub GroundManager() 'Ausgabe der Bodenstückliste in der Konsole
+    Public Sub ArrayManager() 'Ausgabe der Bodenstückliste in der Konsole
         For index As Integer = groundTiles.Count - 1 To 0 Step -1
-            DrawGround($"{groundTiles(index).tileType} ", index, 19) 'nicht denken, maaalen
+            DrawArray($"{groundTiles(index).tileType} ", index, consoleHeight - 1) 'nicht denken, maaalen
         Next
-        If groundTiles(6).tileType = 1 Then 'wenn an Position des Players ein Hindernis ist, wird geprüft ob Spielfigur am Boden ist. Wenn ja, Game Over; Wenn nein, Score +1.
-            If playerJumpHeight < 0.2 Then
-                playDethSound = True
-                gameOverBoolean = True
-                stayInLoop = False
-            Else
-                score += 1
-                If isDivisible(score, 10) Then
-                    playBigScoreSound = True
-                Else
-                    playScoreSound = True
-                End If
-            End If
-        End If
+        For index As Integer = skyTiles.Count - 1 To 0 Step -1
+            DrawArray($"{skyTiles(index).tileType} ", index, 5) 'nicht denken, maaalen
+        Next
+
     End Sub
 
 
@@ -501,6 +517,9 @@ Module Module1
         Dim taskB = Task.Run(AddressOf Timer)
         Dim taskC = Task.Run(AddressOf PlayerAnimator)
         Dim taskD = Task.Run(AddressOf GroundAnimator)
+        Dim taskE = Task.Run(AddressOf CollisionManager)
+
+        'Dim taskE = Task.Run(AddressOf SkyAnimator)
 
         Task.WaitAll(taskA)
     End Function
@@ -509,7 +528,7 @@ Module Module1
         While stayInLoop 'solange true, wird Spieloberfläche gerendert
             DrawStats()
             PlayerManager()
-            GroundManager()
+            ArrayManager()
             Threading.Thread.Sleep(1)
         End While
     End Sub
@@ -517,6 +536,33 @@ Module Module1
         While stayInLoop
             gameTimer += 1
             Threading.Thread.Sleep(1000)
+        End While
+    End Sub
+
+    Public Sub CollisionManager()
+        Dim overObstacle As Boolean = False
+        While stayInLoop
+            If groundTiles(6).tileType <> 0 Then 'wenn an Position des Players ein Hindernis ist, wird geprüft ob Spielfigur am Boden ist. Wenn ja, Game Over; Wenn nein, Score +1.
+                If playerJumpHeight < 0.2 Then
+                    playDethSound = True
+                    gameOverBoolean = True
+                    stayInLoop = False
+                End If
+                overObstacle = True
+            End If
+            If groundTiles(6).tileType = 0 And overObstacle = True Then
+                overObstacle = False
+
+                Debug.WriteLine("overObstacle")
+                score += 1
+                If isDivisible(score, 10) Then
+                    playBigScoreSound = True
+                    playScoreSound = True
+                Else
+                    playScoreSound = True
+                End If
+            End If
+            Threading.Thread.Sleep(0.2)
         End While
     End Sub
 
@@ -560,7 +606,8 @@ Module Module1
         While stayInLoop
             groundTiles.RemoveAt(0) 'entfernt das links außen positionierte Bodenstück der Bodenstückliste, fügt rechts außen ein Bodenstück aus der Bodenstcükliste hinzu
             If spawnTimer > 150 Then 'sofern Zeit zwischen Hinderissen vestrichen ist, füge neues Hindernisstück zur Bodenstückliste hinzu
-                groundTiles.Add(New Tile With {.tileType = 1})
+
+                groundTiles.Add(New Tile With {.tileType = CInt(Math.Floor((4 - 1 + 1) * Rnd())) + 1})
                 spawnTimer = 0
             Else 'andernfalls wird Bodenstück ohne Hindernis hinzugefügt
                 groundTiles.Add(New Tile With {.tileType = 0})
@@ -568,13 +615,29 @@ Module Module1
             Randomize() 'variiere Zeit zwischen Hindernisspawns; Zeit verringert sich über die Spielzeit
             spawnTimer = (spawnTimer + CInt(Math.Floor((randomUpperBound - randomLowerBound + 1) * Rnd())) + randomLowerBound) + (score / 20)
 
-            Threading.Thread.Sleep(17)
+            Threading.Thread.Sleep(20)
+        End While
+    End Sub
+
+    Public Sub SkyAnimator()
+        Dim spawnTimerSky
+        While stayInLoop
+            skyTiles.RemoveAt(0)
+            If spawnTimerSky > 100 Then
+                skyTiles.Add(New Tile With {.tileType = 3})
+                spawnTimerSky = 0
+            Else
+                skyTiles.Add(New Tile With {.tileType = 2})
+            End If
+            Randomize() 'variiere Zeit zwischen Hindernisspawns; Zeit verringert sich über die Spielzeit
+            spawnTimerSky = (spawnTimerSky + CInt(Math.Floor((randomUpperBound - randomLowerBound + 1) * Rnd())) + randomLowerBound) + (score / 20)
+            Threading.Thread.Sleep(60)
         End While
     End Sub
 
     Public Function AsyncLoopGame() As Task   'Starten von verschiedenen Asynchronen Schleifen/Prozessen
-        Dim taskE = Task.Run(AddressOf KeyImput)
-        Dim taskF = Task.Run(AddressOf SoundManager)
+        Dim task1 = Task.Run(AddressOf KeyImput)
+        Dim task2 = Task.Run(AddressOf SoundManager)
     End Function
 
     Dim initiateSounds As Boolean = True
@@ -654,7 +717,7 @@ Module Module1
             menuloopSound.StopPlaying()
             gamemusicSound.PlayLoop()
         End If
-        GroundArraySetUp()
+        ArraySetUp()
         AsyncLoopRound()
     End Sub
 
@@ -684,17 +747,20 @@ Module Module1
             gamemusicSound.StopPlaying()
             menuloopSound.PlayLoop()
         End If
-        Console.ForegroundColor = ConsoleColor.DarkRed
-        WriteAt("Game Over", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
-        Console.ForegroundColor = ConsoleColor.White
+
         If score > highScore Then 'Highscore wird ggf. gesetzt; Überprüfen ob Score der aktuellen Runde höher als Highscore ist
             highScore = score
-            WriteAt("New Highscore", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
+            WriteAt("New Highscore", x:=0, y:=-9, CenterHorizontally:=True, CenterVertically:=True)
         End If
     End Sub
 
     Public Sub HowToPlay()
         Console.Clear()
+        WriteAt("   __ __             ______       ___  __         ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("  / // /__ _    __  /_  __/__    / _ \/ /__ ___ __", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt(" / _  / _ \ |/|/ /   / / / _ \  / ___/ / _ `/ // /", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("/_//_/\___/__,__/   /_/  \___/ /_/  /_/\_,_/\_, / ", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("                                           /___/  ", x:=0, y:=-4, CenterHorizontally:=True, CenterVertically:=True)
         While menuConfirm = False
             Console.ForegroundColor = ConsoleColor.Blue
             WriteAt("> Back", 3, 1)
@@ -708,6 +774,10 @@ Module Module1
 
     Public Sub Credits()
         Console.Clear()
+        WriteAt("  _____           ___ __    ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt(" / ___/______ ___/ (_) /____", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("/ /__/ __/ -_) _  / / __(_-<", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("\___/_/  \__/\_,_/_/\__/___/", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
         While menuConfirm = False
             Console.ForegroundColor = ConsoleColor.Blue
             WriteAt("> Back", 3, 1)
@@ -762,62 +832,76 @@ Module Module1
                 End If
             End If
 
+            If gameOverBoolean Then
+                Console.ForegroundColor = ConsoleColor.DarkRed
+                WriteAt("  _____                 ____              ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
+                WriteAt(" / ___/__ ___ _  ___   / __ \_  _____ ____", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
+                WriteAt("/ (_ / _ `/  ' \/ -_) / /_/ / |/ / -_) __/", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
+                WriteAt("\___/\_,_/_/_/_/\__/  \____/|___/\__/_/   ", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
+                Console.ForegroundColor = ConsoleColor.White
+            Else
+                WriteAt("   ___                           ___  ____", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
+                WriteAt("  / _ \__ _____  ___  ___ ____  / _ \/ __/", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
+                WriteAt(" / , _/ // / _ \/ _ \/ -_) __/  \_, / _ \ ", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
+                WriteAt("/_/|_|\_,_/_//_/_//_/\__/_/    /___/\___/ ", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
+            End If
+
             If menuCursorPosition = 0 Then
                 Console.ForegroundColor = ConsoleColor.Blue
-                WriteAt("> ", (consoleWidth / 2) - 7, (consoleHeight / 2) - 3)
+                WriteAt("> ", (consoleWidth / 2) - 7, (consoleHeight / 2) - 2)
                 If gameOverBoolean Then
-                    WriteAt("Play Again   ", (consoleWidth / 2) - 5, (consoleHeight / 2) - 3)
+                    WriteAt("Play Again   ", (consoleWidth / 2) - 5, (consoleHeight / 2) - 2)
                 Else
-                    WriteAt("Play   ", (consoleWidth / 2) - 5, (consoleHeight / 2) - 3)
+                    WriteAt("Play   ", (consoleWidth / 2) - 5, (consoleHeight / 2) - 2)
                 End If
                 Console.ForegroundColor = ConsoleColor.White
             Else
-                WriteAt("  ", (consoleWidth / 2) - 7, (consoleHeight / 2) - 3)
+                WriteAt("  ", (consoleWidth / 2) - 7, (consoleHeight / 2) - 2)
                 If gameOverBoolean Then
-                    WriteAt("Play Again   ", (consoleWidth / 2) - 5, (consoleHeight / 2) - 3)
+                    WriteAt("Play Again   ", (consoleWidth / 2) - 5, (consoleHeight / 2) - 2)
                 Else
-                    WriteAt("Play   ", (consoleWidth / 2) - 5, (consoleHeight / 2) - 3)
+                    WriteAt("Play   ", (consoleWidth / 2) - 5, (consoleHeight / 2) - 2)
                 End If
             End If
             If menuCursorPosition = 1 Then
                 Console.ForegroundColor = ConsoleColor.Blue
-                WriteAt("> ", (consoleWidth / 2) - 7, (consoleHeight / 2) - 1)
-                WriteAt("How to Play   ", (consoleWidth / 2) - 5, (consoleHeight / 2) - 1)
-                Console.ForegroundColor = ConsoleColor.White
-            Else
-                WriteAt("  ", (consoleWidth / 2) - 7, (consoleHeight / 2) - 1)
-                WriteAt("How to Play   ", (consoleWidth / 2) - 5, (consoleHeight / 2) - 1)
-            End If
-            If menuCursorPosition = 2 Then
-                Console.ForegroundColor = ConsoleColor.Blue
                 WriteAt("> ", (consoleWidth / 2) - 7, (consoleHeight / 2))
-                If musicEnabled Then
-                    WriteAt("Music Enabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2))
-                Else
-                    WriteAt("Music Disabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2))
-                End If
+                WriteAt("How to Play   ", (consoleWidth / 2) - 5, (consoleHeight / 2))
                 Console.ForegroundColor = ConsoleColor.White
             Else
                 WriteAt("  ", (consoleWidth / 2) - 7, (consoleHeight / 2))
+                WriteAt("How to Play   ", (consoleWidth / 2) - 5, (consoleHeight / 2))
+            End If
+            If menuCursorPosition = 2 Then
+                Console.ForegroundColor = ConsoleColor.Blue
+                WriteAt("> ", (consoleWidth / 2) - 7, (consoleHeight / 2) + 1)
                 If musicEnabled Then
-                    WriteAt("Music Enabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2))
+                    WriteAt("Music Enabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 1)
                 Else
-                    WriteAt("Music Disabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2))
+                    WriteAt("Music Disabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 1)
+                End If
+                Console.ForegroundColor = ConsoleColor.White
+            Else
+                WriteAt("  ", (consoleWidth / 2) - 7, (consoleHeight / 2) + 1)
+                If musicEnabled Then
+                    WriteAt("Music Enabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 1)
+                Else
+                    WriteAt("Music Disabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 1)
                 End If
             End If
             If menuCursorPosition = 3 Then
                 Console.ForegroundColor = ConsoleColor.Blue
-                WriteAt("> ", (consoleWidth / 2) - 7, (consoleHeight / 2) + 1)
-                WriteAt("Credits   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 1)
+                WriteAt("> ", (consoleWidth / 2) - 7, (consoleHeight / 2) + 2)
+                WriteAt("Credits   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 2)
                 Console.ForegroundColor = ConsoleColor.White
             Else
-                WriteAt("  ", (consoleWidth / 2) - 7, (consoleHeight / 2) + 1)
-                WriteAt("Credits   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 1)
+                WriteAt("  ", (consoleWidth / 2) - 7, (consoleHeight / 2) + 2)
+                WriteAt("Credits   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 2)
             End If
         End While
     End Sub
 
-    Public consoleWidth As Integer = 100
+    Public consoleWidth As Integer = 120
     Public consoleHeight As Integer = 22
 
     Public Sub Main()

@@ -2,13 +2,19 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <RootNamespace>InformatikSpiel</RootNamespace>
+    <RootNamespace>Runner96</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
     <ImportedNamespaces>Microsoft.VisualBasic=True,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,System.Xml.Linq=True,System.Threading.Tasks=True,InformatikSpiel=True</ImportedNamespaces>
     <UseApplicationFramework>False</UseApplicationFramework>
     <UseWindowsForms>False</UseWindowsForms>
     <UseWPF>False</UseWPF>
+    <AssemblyName>Runner96</AssemblyName>
+    <ApplicationIcon>bin\Debug\net6.0\96.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="bin\Debug\net6.0\96.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FireSharp" Version="2.0.4" />
