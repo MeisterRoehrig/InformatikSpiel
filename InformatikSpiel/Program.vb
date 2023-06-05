@@ -33,9 +33,11 @@ Module Module1
     'Einrichten der Konsole
     'Größe, Scrollbar wird entfernt, Kursor ausblenden
     Public Sub ConsoleSetup(consoleWidth As Integer, consoleHeight As Integer)
+        Console.Clear()
         Console.SetWindowSize(consoleWidth, consoleHeight)
         Console.SetBufferSize(consoleWidth, consoleHeight)
         Console.CursorVisible = False
+        Console.Title = "Runner 96"
         Console.TreatControlCAsInput = True 'verhindert das Abbrechen des Programms durch Strg c: Fenster wird nicht geschlossen, GameOver wird angezeigt
         Debug.WriteLine(AppDomain.CurrentDomain.BaseDirectory.ToString())
     End Sub
@@ -46,14 +48,14 @@ Module Module1
     Public score As Integer = 0
     Public highScore As Integer
     Public Sub DrawStats()
-        WriteAt("Timer:" & gameTimer, 1, 1) 'Gametimer: Ausgabe der Spielzeit auf dem Bildschirm
+        WriteAt("Timer:" & gameTimer & "   ", 1, 1) 'Gametimer: Ausgabe der Spielzeit auf dem Bildschirm
         If gameTimer > gameTimerCache Then 'wann ist eine Sekunde vergangen
-            WriteAt("FPS:" & fps, 1, 2) 'nach einer Sekunde Ausgabe der FPS-Variable auf dem Bildschirm
+            WriteAt("FPS:" & fps & "   ", 1, 2) 'nach einer Sekunde Ausgabe der FPS-Variable auf dem Bildschirm
             fps = 0
         End If
         fps += 1 'erhöhe die FPS Variable jeden gerenderten Frame um 1
         gameTimerCache = gameTimer
-        WriteAt("Score:" & score, 1, 0)
+        WriteAt("Score:" & score & "   ", 1, 0)
     End Sub
 
     'Animation der Spielfigur
@@ -452,7 +454,7 @@ Module Module1
                     WriteAt("`", groundAnchorX, groundAnchorY)
                 Case 2
                     WriteAt("[]", groundAnchorX, groundAnchorY - 2)
-                    WriteAt("[][]", groundAnchorX, groundAnchorY - 1)
+                    WriteAt("||", groundAnchorX, groundAnchorY - 1)
                     WriteAt("`", groundAnchorX, groundAnchorY)
                 Case 3
                     WriteAt(" []", groundAnchorX, groundAnchorY - 2)
@@ -460,7 +462,7 @@ Module Module1
                     WriteAt("`", groundAnchorX, groundAnchorY)
                 Case 4
                     WriteAt("[]", groundAnchorX, groundAnchorY - 2)
-                    WriteAt("||", groundAnchorX, groundAnchorY - 1)
+                    WriteAt("[][]", groundAnchorX, groundAnchorY - 1)
                     WriteAt("`", groundAnchorX, groundAnchorY)
                 Case 5
                     WriteAt(" ", groundAnchorX, groundAnchorY - 2)
@@ -470,7 +472,14 @@ Module Module1
                     WriteAt("   ___", groundAnchorX, groundAnchorY - 2)
                     WriteAt(" _(   )", groundAnchorX, groundAnchorY - 1)
                     WriteAt("(___)__)", groundAnchorX, groundAnchorY)
-
+                Case 7
+                    WriteAt("   ___", groundAnchorX, groundAnchorY - 2)
+                    WriteAt(" _(   )", groundAnchorX, groundAnchorY - 1)
+                    WriteAt("(___(__)", groundAnchorX, groundAnchorY)
+                Case 8
+                    WriteAt("  ___", groundAnchorX, groundAnchorY - 2)
+                    WriteAt(" (   )_", groundAnchorX, groundAnchorY - 1)
+                    WriteAt("(______)", groundAnchorX, groundAnchorY)
             End Select
 
         Catch e As ArgumentOutOfRangeException 'Fallback
@@ -484,15 +493,38 @@ Module Module1
     End Class
 
     Public groundTiles As New List(Of Tile) 'Liste bestehend aus Bodenstücken
-    Public skyTiles As New List(Of Tile)
+    Public skyTiles1 As New List(Of Tile)
+    Public skyTiles2 As New List(Of Tile)
     Public Sub ArraySetUp() 'befüllen der Liste mit Bodenstücken beim Rundenstart
         groundTiles.Clear()
         For i = 0 To consoleWidth - 1
             groundTiles.Add(New Tile With {.tileType = 0}) 'Bestückung mit Bodenstücken des Standarttyps (kein Hindernis)
         Next
-        skyTiles.Clear()
+        skyTiles1.Clear()
+        Dim spawnRandom As Integer = 0
         For i = 0 To consoleWidth - 1
-            skyTiles.Add(New Tile With {.tileType = 5}) 'Bestückung mit Bodenstücken des Standarttyps (kein Hindernis)
+            If spawnRandom > CInt(Math.Floor((55 - 45 + 1) * Rnd())) + 45 Then
+                Dim tyleTypeRnd As Integer = CInt(Math.Floor((8 - 5 + 1) * Rnd())) + 5
+                skyTiles1.Add(New Tile With {.tileType = tyleTypeRnd}) 'Bestückung mit Bodenstücken des Standarttyps (kein Hindernis)
+                spawnRandom = 0
+            Else
+                skyTiles1.Add(New Tile With {.tileType = 5}) 'Bestückung mit Bodenstücken des Standarttyps (kein Hindernis)
+
+            End If
+            spawnRandom += 1
+        Next
+        spawnRandom = 0
+        skyTiles2.Clear()
+        For i = 0 To consoleWidth - 1
+            If spawnRandom > CInt(Math.Floor((40 - 30 + 1) * Rnd())) + 30 Then
+                Dim tyleTypeRnd As Integer = CInt(Math.Floor((8 - 5 + 1) * Rnd())) + 5
+                skyTiles2.Add(New Tile With {.tileType = tyleTypeRnd}) 'Bestückung mit Bodenstücken des Standarttyps (kein Hindernis)
+                spawnRandom = 0
+            Else
+                skyTiles2.Add(New Tile With {.tileType = 5}) 'Bestückung mit Bodenstücken des Standarttyps (kein Hindernis)
+
+            End If
+            spawnRandom += 1
         Next
     End Sub
 
@@ -500,8 +532,11 @@ Module Module1
         For index As Integer = groundTiles.Count - 1 To 0 Step -1
             DrawArray($"{groundTiles(index).tileType} ", index, consoleHeight - 1) 'nicht denken, maaalen
         Next
-        For index As Integer = skyTiles.Count - 1 To 0 Step -1
-            DrawArray($"{skyTiles(index).tileType} ", index, 5) 'nicht denken, maaalen
+        For index As Integer = skyTiles1.Count - 1 To 0 Step -1
+            DrawArray($"{skyTiles1(index).tileType} ", index, 5) 'nicht denken, maaalen
+        Next
+        For index As Integer = skyTiles2.Count - 1 To 0 Step -1
+            DrawArray($"{skyTiles2(index).tileType} ", index, 9) 'nicht denken, maaalen
         Next
 
     End Sub
@@ -518,17 +553,14 @@ Module Module1
         Dim taskC = Task.Run(AddressOf PlayerAnimator)
         Dim taskD = Task.Run(AddressOf GroundAnimator)
         Dim taskE = Task.Run(AddressOf CollisionManager)
-
-        'Dim taskE = Task.Run(AddressOf SkyAnimator)
-
+        Dim taskF = Task.Run(AddressOf SkyAnimator)
         Task.WaitAll(taskA)
     End Function
-
     Public Sub RenderLoop()
         While stayInLoop 'solange true, wird Spieloberfläche gerendert
             DrawStats()
-            PlayerManager()
             ArrayManager()
+            PlayerManager()
             Threading.Thread.Sleep(1)
         End While
     End Sub
@@ -544,6 +576,7 @@ Module Module1
         While stayInLoop
             If groundTiles(6).tileType <> 0 Then 'wenn an Position des Players ein Hindernis ist, wird geprüft ob Spielfigur am Boden ist. Wenn ja, Game Over; Wenn nein, Score +1.
                 If playerJumpHeight < 0.2 Then
+
                     playDethSound = True
                     gameOverBoolean = True
                     stayInLoop = False
@@ -606,11 +639,26 @@ Module Module1
         While stayInLoop
             groundTiles.RemoveAt(0) 'entfernt das links außen positionierte Bodenstück der Bodenstückliste, fügt rechts außen ein Bodenstück aus der Bodenstcükliste hinzu
             If spawnTimer > 150 Then 'sofern Zeit zwischen Hinderissen vestrichen ist, füge neues Hindernisstück zur Bodenstückliste hinzu
+                Dim tyleTypeRnd As Integer = CInt(Math.Floor((4 - 1 + 1) * Rnd())) + 1
 
-                groundTiles.Add(New Tile With {.tileType = CInt(Math.Floor((4 - 1 + 1) * Rnd())) + 1})
+                If tyleTypeRnd = 1 Or tyleTypeRnd = 2 Then
+                    groundTiles.RemoveAt(consoleWidth - 2)
+                    groundTiles.Add(New Tile With {.tileType = tyleTypeRnd})
+                    groundTiles.Add(New Tile With {.tileType = 0})
+                End If
+                If tyleTypeRnd = 3 Or tyleTypeRnd = 4 Then
+                    groundTiles.RemoveAt(consoleWidth - 2)
+                    groundTiles.RemoveAt(consoleWidth - 3)
+                    groundTiles.RemoveAt(consoleWidth - 4)
+                    groundTiles.Add(New Tile With {.tileType = tyleTypeRnd})
+                    groundTiles.Add(New Tile With {.tileType = 0})
+                    groundTiles.Add(New Tile With {.tileType = 0})
+                    groundTiles.Add(New Tile With {.tileType = 0})
+                End If
+
                 spawnTimer = 0
-            Else 'andernfalls wird Bodenstück ohne Hindernis hinzugefügt
-                groundTiles.Add(New Tile With {.tileType = 0})
+                Else 'andernfalls wird Bodenstück ohne Hindernis hinzugefügt
+                    groundTiles.Add(New Tile With {.tileType = 0})
             End If
             Randomize() 'variiere Zeit zwischen Hindernisspawns; Zeit verringert sich über die Spielzeit
             spawnTimer = (spawnTimer + CInt(Math.Floor((randomUpperBound - randomLowerBound + 1) * Rnd())) + randomLowerBound) + (score / 20)
@@ -622,12 +670,52 @@ Module Module1
     Public Sub SkyAnimator()
         Dim spawnTimerSky
         While stayInLoop
-            skyTiles.RemoveAt(0)
+            skyTiles1.RemoveAt(0)
+            skyTiles2.RemoveAt(0)
             If spawnTimerSky > 100 Then
-                skyTiles.Add(New Tile With {.tileType = 3})
+                Dim tyleTypeSkyRnd As Integer = CInt(Math.Floor((8 - 6 + 1) * Rnd())) + 6
+                Dim skyLayerRnd As Integer = CInt(Math.Floor((2 - 1 + 1) * Rnd())) + 1
+                Debug.WriteLine(tyleTypeSkyRnd)
+                Debug.WriteLine(skyLayerRnd)
+                If skyLayerRnd = 1 Then
+                    skyTiles1.RemoveAt(consoleWidth - 2)
+                    skyTiles1.RemoveAt(consoleWidth - 3)
+                    skyTiles1.RemoveAt(consoleWidth - 4)
+                    skyTiles1.RemoveAt(consoleWidth - 5)
+                    skyTiles1.RemoveAt(consoleWidth - 6)
+                    skyTiles1.RemoveAt(consoleWidth - 7)
+                    skyTiles1.RemoveAt(consoleWidth - 8)
+                    skyTiles1.Add(New Tile With {.tileType = tyleTypeSkyRnd})
+                    skyTiles1.Add(New Tile With {.tileType = 5})
+                    skyTiles1.Add(New Tile With {.tileType = 5})
+                    skyTiles1.Add(New Tile With {.tileType = 5})
+                    skyTiles1.Add(New Tile With {.tileType = 5})
+                    skyTiles1.Add(New Tile With {.tileType = 5})
+                    skyTiles1.Add(New Tile With {.tileType = 5})
+                    skyTiles1.Add(New Tile With {.tileType = 5})
+                    skyTiles2.Add(New Tile With {.tileType = 5})
+                Else
+                    skyTiles2.RemoveAt(consoleWidth - 2)
+                    skyTiles2.RemoveAt(consoleWidth - 3)
+                    skyTiles2.RemoveAt(consoleWidth - 4)
+                    skyTiles2.RemoveAt(consoleWidth - 5)
+                    skyTiles2.RemoveAt(consoleWidth - 6)
+                    skyTiles2.RemoveAt(consoleWidth - 7)
+                    skyTiles2.RemoveAt(consoleWidth - 8)
+                    skyTiles2.Add(New Tile With {.tileType = tyleTypeSkyRnd})
+                    skyTiles2.Add(New Tile With {.tileType = 5})
+                    skyTiles2.Add(New Tile With {.tileType = 5})
+                    skyTiles2.Add(New Tile With {.tileType = 5})
+                    skyTiles2.Add(New Tile With {.tileType = 5})
+                    skyTiles2.Add(New Tile With {.tileType = 5})
+                    skyTiles2.Add(New Tile With {.tileType = 5})
+                    skyTiles2.Add(New Tile With {.tileType = 5})
+                    skyTiles1.Add(New Tile With {.tileType = 5})
+                End If
                 spawnTimerSky = 0
             Else
-                skyTiles.Add(New Tile With {.tileType = 2})
+                skyTiles1.Add(New Tile With {.tileType = 5})
+                skyTiles2.Add(New Tile With {.tileType = 5})
             End If
             Randomize() 'variiere Zeit zwischen Hindernisspawns; Zeit verringert sich über die Spielzeit
             spawnTimerSky = (spawnTimerSky + CInt(Math.Floor((randomUpperBound - randomLowerBound + 1) * Rnd())) + randomLowerBound) + (score / 20)
@@ -639,6 +727,7 @@ Module Module1
         Dim task1 = Task.Run(AddressOf KeyImput)
         Dim task2 = Task.Run(AddressOf SoundManager)
     End Function
+
 
     Dim initiateSounds As Boolean = True
     Public Sub SoundManager()
@@ -747,6 +836,15 @@ Module Module1
             gamemusicSound.StopPlaying()
             menuloopSound.PlayLoop()
         End If
+
+        For i = 0 To 5
+            DrawArray($"{groundTiles(6).tileType} ", 6, consoleHeight - 1) 'nicht denken, maaalen
+            Threading.Thread.Sleep(20)
+            Console.ForegroundColor = ConsoleColor.DarkRed
+            DrawArray($"{groundTiles(6).tileType} ", 6, consoleHeight - 1) 'nicht denken, maaalen
+            Console.ForegroundColor = ConsoleColor.White
+            Threading.Thread.Sleep(30)
+        Next
 
         If score > highScore Then 'Highscore wird ggf. gesetzt; Überprüfen ob Score der aktuellen Runde höher als Highscore ist
             highScore = score
@@ -900,6 +998,7 @@ Module Module1
             End If
         End While
     End Sub
+
 
     Public consoleWidth As Integer = 120
     Public consoleHeight As Integer = 22
