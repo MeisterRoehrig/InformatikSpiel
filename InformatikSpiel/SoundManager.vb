@@ -86,7 +86,6 @@ Namespace MCIDEMO
 			If _isloaded Then
 				_deviceid = mciGetDeviceID(_alias)
 			End If
-			Debug.WriteLine("_isloaded: " + _isloaded)
 			Return _isloaded
 		End Function
 

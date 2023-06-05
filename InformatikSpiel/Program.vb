@@ -5,6 +5,9 @@ Imports System.Net.NetworkInformation
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports InformatikSpiel.MCIDEMO
+Imports FireSharp.Config
+Imports FireSharp.Response
+Imports FireSharp.Interfaces
 
 Module Module1
     'Funktion zur Ausgabe eines Zeichens an einer bestimmten Position der Konsole
@@ -657,8 +660,8 @@ Module Module1
                 End If
 
                 spawnTimer = 0
-                Else 'andernfalls wird Bodenstück ohne Hindernis hinzugefügt
-                    groundTiles.Add(New Tile With {.tileType = 0})
+            Else 'andernfalls wird Bodenstück ohne Hindernis hinzugefügt
+                groundTiles.Add(New Tile With {.tileType = 0})
             End If
             Randomize() 'variiere Zeit zwischen Hindernisspawns; Zeit verringert sich über die Spielzeit
             spawnTimer = (spawnTimer + CInt(Math.Floor((randomUpperBound - randomLowerBound + 1) * Rnd())) + randomLowerBound) + (score / 20)
@@ -719,7 +722,7 @@ Module Module1
             End If
             Randomize() 'variiere Zeit zwischen Hindernisspawns; Zeit verringert sich über die Spielzeit
             spawnTimerSky = (spawnTimerSky + CInt(Math.Floor((randomUpperBound - randomLowerBound + 1) * Rnd())) + randomLowerBound) + (score / 20)
-            Threading.Thread.Sleep(60)
+            Threading.Thread.Sleep(80)
         End While
     End Sub
 
@@ -999,11 +1002,66 @@ Module Module1
         End While
     End Sub
 
+    Private fConfig As New FirebaseConfig() With
+        {
+        .AuthSecret = "Ujd5c4MQRC7lrK1DbEPMfAkkSqgk8IqWGQyZYsFo",
+        .BasePath = "https://informatikspiel-default-rtdb.europe-west1.firebasedatabase.app/"
+        }
+    Private fClient As IFirebaseClient
+
+    Private Sub FirbaseLoad()
+        Try
+            fClient = New FireSharp.FirebaseClient(fConfig)
+        Catch
+            Debug.WriteLine("Could not connect to Firebase services")
+        End Try
+    End Sub
+
+    Private Sub FirebaseSend()
+        Dim gameScore As New GameScore() With
+            {
+            .roundId = Convert.ToInt64((Date.UtcNow - New DateTime(1970, 1, 1)).TotalMilliseconds).ToString(),
+            .roundDate = "20.20.23",
+            .playerName = "Test Player 2",
+            .playerScore = "6969"
+            }
+        Dim fSetter = fClient.Set("GameScoreList/" + gameScore.roundId, gameScore)
+        Debug.WriteLine("Data uploaded successfully")
+    End Sub
+
+    Private Sub FirebaseReceive()
+        Dim fReceiver As FirebaseResponse = fClient.Get("GameScoreList/")
+        Dim gameScoreList As Dictionary(Of String, GameScore) = fReceiver.ResultAs(Of Dictionary(Of String, GameScore))
+
+        'For Each gameScore As KeyValuePair(Of String, GameScore) In gameScoreList
+        '    Debug.WriteLine("roundId: " & gameScore.Value.roundId)
+        '    Debug.WriteLine("roundDate: " & gameScore.Value.roundDate)
+        '    Debug.WriteLine("playerName: " & gameScore.Value.playerName)
+        '    Debug.WriteLine("playerScore: " & gameScore.Value.playerScore)
+        'Next
+
+        Dim sorted = From pair In gameScoreList Order By pair.Value.playerScore
+        Dim sortedDictionary = sorted.ToDictionary(Function(p) p.Key, Function(p) p.Value)
+
+        For Each kvp As KeyValuePair(Of String, GameScore) In sortedDictionary
+            Debug.WriteLine("Key = {0}, Value = {1}",
+                kvp.Key, kvp.Value)
+        Next kvp
+    End Sub
 
     Public consoleWidth As Integer = 120
     Public consoleHeight As Integer = 22
 
     Public Sub Main()
+
+
+        FirbaseLoad()
+        'Console.ReadKey()
+        'FirebaseSend()
+        'Console.ReadKey()
+        FirebaseReceive()
+        Console.ReadKey()
+
         ConsoleSetup(consoleWidth, consoleHeight)
         AsyncLoopGame()
         MenuLoop()
@@ -1011,3 +1069,11 @@ Module Module1
     End Sub
 
 End Module
+
+
+Public Class GameScore
+    Public Property roundId As String = ""
+    Public Property roundDate As String = ""
+    Public Property playerName As String = ""
+    Public Property playerScore As String = ""
+End Class
