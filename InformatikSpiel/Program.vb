@@ -8,6 +8,7 @@ Imports InformatikSpiel.MCIDEMO
 Imports FireSharp.Config
 Imports FireSharp.Response
 Imports FireSharp.Interfaces
+Imports System.Security.Cryptography.X509Certificates
 
 Module Module1
     'Funktion zur Ausgabe eines Zeichens an einer bestimmten Position der Konsole
@@ -35,6 +36,8 @@ Module Module1
 
     'Einrichten der Konsole
     'Größe, Scrollbar wird entfernt, Kursor ausblenden
+    Public playerName As String
+    Public musicEnabled As Boolean
     Public Sub ConsoleSetup(consoleWidth As Integer, consoleHeight As Integer)
         Console.Clear()
         Console.SetWindowSize(consoleWidth, consoleHeight)
@@ -43,6 +46,8 @@ Module Module1
         Console.Title = "Runner 96"
         Console.TreatControlCAsInput = True 'verhindert das Abbrechen des Programms durch Strg c: Fenster wird nicht geschlossen, GameOver wird angezeigt
         Debug.WriteLine(AppDomain.CurrentDomain.BaseDirectory.ToString())
+        playerName = LoadPlayerName()
+        musicEnabled = LoadSettings()
     End Sub
 
     Public gameTimer As Integer = 0 'verstrichene Zeit seit Spielbeginn (Rundenstart)
@@ -762,6 +767,7 @@ Module Module1
         End While
     End Sub
 
+    Public playerNameCharacters As New List(Of String)
     Public Sub KeyImput() 'Abfrage der Tastaturabfrage
         Dim consoleKey As ConsoleKeyInfo
         While True
@@ -769,18 +775,20 @@ Module Module1
             If (consoleKey.Key = 32) <> 0 And stayInLoop Then   'Key32=Lertaste; wenn Leertaste gedrückt wird: setzen der Sprungvariable auf True
                 playerJump = True
             End If
-            If (consoleKey.Key = 32) <> 0 And stayInLoop = False Then
+            If (consoleKey.Key = 32) <> 0 And stayInLoop = False And editName = False Then
                 menuConfirm = True
             End If
-            If (consoleKey.Key = 13) <> 0 And stayInLoop = False Then
-                menuConfirm = True
-            End If
-            If (consoleKey.Key = 38) <> 0 And stayInLoop = False Then
+            If (consoleKey.Key = 38) <> 0 And stayInLoop = False And editName = False Then
                 If menuCursorPosition > 0 Then menuCursorPosition -= 1
             End If
-            If (consoleKey.Key = 40) <> 0 And stayInLoop = False Then
-                If menuCursorPosition < 3 Then menuCursorPosition += 1
+            If (consoleKey.Key = 40) <> 0 And stayInLoop = False And editName = False Then
+                If menuCursorPosition < 4 Then menuCursorPosition += 1
             End If
+            If editName Then
+                playerNameCharacters.Add(consoleKey.Key.ToString())
+                Debug.WriteLine(Join(playerNameCharacters.ToArray(), ""))
+            End If
+
             If (consoleKey.Modifiers And ConsoleModifiers.Control And consoleKey.Key = 67) <> 0 Then stayInLoop = False 'Abfrage bei Tastenkombination "Strg C" beenden der Runde
         End While
     End Sub
@@ -829,6 +837,29 @@ Module Module1
             End Using
         Catch ex As Exception
             Debug.WriteLine("musicsettings.txt could not be reached")
+            line = True
+        End Try
+        Return line
+
+    End Function
+
+    Public Sub SavePlayerName(ByVal playerName As String)
+        Try
+            System.IO.File.WriteAllText("playerName.txt", playerName)
+        Catch ex As Exception
+            Debug.WriteLine("playerName.txt could not be reached")
+        End Try
+    End Sub
+
+    Public Function LoadPlayerName() As String
+        Dim line As String
+        Try
+            Using reader As New StreamReader("playerName.txt")
+                line = reader.ReadLine()
+            End Using
+        Catch ex As Exception
+            Debug.WriteLine("playerName.txt could not be reached, setting basename instead")
+            line = "Mike"
         End Try
         Return line
     End Function
@@ -848,26 +879,51 @@ Module Module1
             Console.ForegroundColor = ConsoleColor.White
             Threading.Thread.Sleep(30)
         Next
-
-        If score > highScore Then 'Highscore wird ggf. gesetzt; Überprüfen ob Score der aktuellen Runde höher als Highscore ist
-            highScore = score
-            WriteAt("New Highscore", x:=0, y:=-9, CenterHorizontally:=True, CenterVertically:=True)
-        End If
+        FirebaseSend("Mike", score)
     End Sub
 
-    Public Sub HowToPlay()
+    Public Sub HighScores()
         Console.Clear()
-        WriteAt("   __ __             ______       ___  __         ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
-        WriteAt("  / // /__ _    __  /_  __/__    / _ \/ /__ ___ __", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
-        WriteAt(" / _  / _ \ |/|/ /   / / / _ \  / ___/ / _ `/ // /", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
-        WriteAt("/_//_/\___/__,__/   /_/  \___/ /_/  /_/\_,_/\_, / ", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
-        WriteAt("                                           /___/  ", x:=0, y:=-4, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("   __ ___      __     ____                   ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("  / // (_)__ _/ /    / __/______  _______ ___", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt(" / _  / / _ `/ _ \  _\ \/ __/ _ \/ __/ -_|_-<", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("/_//_/_/\_, /_//_/ /___/\__/\___/_/  \__/___/", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("       /___/                                 ", x:=0, y:=-4, CenterHorizontally:=True, CenterVertically:=True)
+        Dim renderOnce = True
         While menuConfirm = False
             Console.ForegroundColor = ConsoleColor.Blue
             WriteAt("> Back", 3, 1)
             Console.ForegroundColor = ConsoleColor.White
-            WriteAt("Drücke Leertaste um zu springen und Hindernissen auszuweichen", x:=0, y:=0, CenterHorizontally:=True, CenterVertically:=True)
-            WriteAt("Ziel ist es eine möglichst große Strecke zurückzulegen ohne ein Hinderniss zu berühren.", x:=0, y:=1, CenterHorizontally:=True, CenterVertically:=True)
+            If renderOnce Then
+                Dim runLine As Integer = -2
+                For Each gameScore As KeyValuePair(Of String, GameScore) In FirebaseReceive()
+                    If runLine <= 10 Then
+                        WriteAt(gameScore.Value.playerName & " - " & gameScore.Value.roundDate & " - " & gameScore.Value.playerScore, x:=0, y:=runLine, CenterHorizontally:=True, CenterVertically:=True)
+                    End If
+                    runLine += 1
+                Next
+                renderOnce = False
+            End If
+        End While
+        menuConfirm = False
+        Console.Clear()
+    End Sub
+
+    Public editName = False
+    Public Sub ChangeName()
+        Console.Clear()
+        editName = True
+        WriteAt("  _______                        _  __              ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt(" / ___/ /  ___ ____  ___ ____   / |/ /__ ___ _  ___ ", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("/ /__/ _ \/ _ `/ _ \/ _ `/ -_) /    / _ `/  ' \/ -_)", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("\___/_//_/\_,_/_//_/\_, /\__/ /_/|_/\_,_/_/_/_/\__/ ", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("                   /___/                            ", x:=0, y:=-4, CenterHorizontally:=True, CenterVertically:=True)
+        While menuConfirm = False
+            Console.ForegroundColor = ConsoleColor.Blue
+            WriteAt("> Back", 3, 1)
+            Console.ForegroundColor = ConsoleColor.White
+            WriteAt("Confirm with [Space]", (consoleWidth / 2) - 20, (consoleHeight / 2) + 1)
+            WriteAt("New Name (Max 15):", (consoleWidth / 2) - 20, (consoleHeight / 2))
         End While
         menuConfirm = False
         Console.Clear()
@@ -883,7 +939,7 @@ Module Module1
             Console.ForegroundColor = ConsoleColor.Blue
             WriteAt("> Back", 3, 1)
             Console.ForegroundColor = ConsoleColor.White
-            WriteAt("TWE-22", (consoleWidth / 2) - 8, (consoleHeight / 2) - 3)
+            WriteAt("TWE-22", (consoleWidth / 2) - 8, (consoleHeight / 2) - 2)
             WriteAt("Philipp Brocher", (consoleWidth / 2) - 8, (consoleHeight / 2) - 1)
             WriteAt("Erik Siegel", (consoleWidth / 2) - 8, (consoleHeight / 2))
             WriteAt("Linus von Maltzan", (consoleWidth / 2) - 8, (consoleHeight / 2) + 1)
@@ -894,7 +950,6 @@ Module Module1
     End Sub
 
 
-    Public musicEnabled As Boolean = LoadSettings()
     Public Sub ToggleAudio()
         If musicEnabled Then
             musicEnabled = False
@@ -923,12 +978,15 @@ Module Module1
                     GameOver()
                 End If
                 If menuCursorPosition = 1 Then
-                    HowToPlay()
+                    HighScores()
                 End If
                 If menuCursorPosition = 2 Then
-                    ToggleAudio()
+                    ChangeName()
                 End If
                 If menuCursorPosition = 3 Then
+                    ToggleAudio()
+                End If
+                If menuCursorPosition = 4 Then
                     Credits()
                 End If
             End If
@@ -967,37 +1025,46 @@ Module Module1
             If menuCursorPosition = 1 Then
                 Console.ForegroundColor = ConsoleColor.Blue
                 WriteAt("> ", (consoleWidth / 2) - 7, (consoleHeight / 2))
-                WriteAt("How to Play   ", (consoleWidth / 2) - 5, (consoleHeight / 2))
+                WriteAt("High Scores   ", (consoleWidth / 2) - 5, (consoleHeight / 2))
                 Console.ForegroundColor = ConsoleColor.White
             Else
                 WriteAt("  ", (consoleWidth / 2) - 7, (consoleHeight / 2))
-                WriteAt("How to Play   ", (consoleWidth / 2) - 5, (consoleHeight / 2))
+                WriteAt("High Scores   ", (consoleWidth / 2) - 5, (consoleHeight / 2))
             End If
             If menuCursorPosition = 2 Then
                 Console.ForegroundColor = ConsoleColor.Blue
                 WriteAt("> ", (consoleWidth / 2) - 7, (consoleHeight / 2) + 1)
-                If musicEnabled Then
-                    WriteAt("Music Enabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 1)
-                Else
-                    WriteAt("Music Disabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 1)
-                End If
+                WriteAt("Change Name   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 1)
                 Console.ForegroundColor = ConsoleColor.White
             Else
                 WriteAt("  ", (consoleWidth / 2) - 7, (consoleHeight / 2) + 1)
-                If musicEnabled Then
-                    WriteAt("Music Enabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 1)
-                Else
-                    WriteAt("Music Disabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 1)
-                End If
+                WriteAt("Change Name   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 1)
             End If
             If menuCursorPosition = 3 Then
                 Console.ForegroundColor = ConsoleColor.Blue
                 WriteAt("> ", (consoleWidth / 2) - 7, (consoleHeight / 2) + 2)
-                WriteAt("Credits   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 2)
+                If musicEnabled Then
+                    WriteAt("Music Enabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 2)
+                Else
+                    WriteAt("Music Disabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 2)
+                End If
                 Console.ForegroundColor = ConsoleColor.White
             Else
                 WriteAt("  ", (consoleWidth / 2) - 7, (consoleHeight / 2) + 2)
-                WriteAt("Credits   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 2)
+                If musicEnabled Then
+                    WriteAt("Music Enabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 2)
+                Else
+                    WriteAt("Music Disabled   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 2)
+                End If
+            End If
+            If menuCursorPosition = 4 Then
+                Console.ForegroundColor = ConsoleColor.Blue
+                WriteAt("> ", (consoleWidth / 2) - 7, (consoleHeight / 2) + 3)
+                WriteAt("Credits   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 3)
+                Console.ForegroundColor = ConsoleColor.White
+            Else
+                WriteAt("  ", (consoleWidth / 2) - 7, (consoleHeight / 2) + 3)
+                WriteAt("Credits   ", (consoleWidth / 2) - 5, (consoleHeight / 2) + 3)
             End If
         End While
     End Sub
@@ -1017,57 +1084,47 @@ Module Module1
         End Try
     End Sub
 
-    Private Sub FirebaseSend()
+    Private Sub FirebaseSend(playerName As String, playerScore As Integer)
         Dim gameScore As New GameScore() With
             {
             .roundId = Convert.ToInt64((Date.UtcNow - New DateTime(1970, 1, 1)).TotalMilliseconds).ToString(),
-            .roundDate = "20.20.23",
-            .playerName = "Test Player 2",
-            .playerScore = "6969"
+            .roundDate = DateTime.Now.ToString("dd.MM.yyyy"),
+            .playerName = playerName,
+            .playerScore = playerScore.ToString()
             }
-        Dim fSetter = fClient.Set("GameScoreList/" + gameScore.roundId, gameScore)
+        Dim fSetter = fClient.SetAsync("GameScoreList/" + gameScore.roundId, gameScore)
         Debug.WriteLine("Data uploaded successfully")
     End Sub
 
-    Private Sub FirebaseReceive()
+    Public sortedGameScoreDictionary As Dictionary(Of String, GameScore)
+    Private Function FirebaseReceive() As Dictionary(Of String, GameScore)
         Dim fReceiver As FirebaseResponse = fClient.Get("GameScoreList/")
         Dim gameScoreList As Dictionary(Of String, GameScore) = fReceiver.ResultAs(Of Dictionary(Of String, GameScore))
-
-        'For Each gameScore As KeyValuePair(Of String, GameScore) In gameScoreList
-        '    Debug.WriteLine("roundId: " & gameScore.Value.roundId)
-        '    Debug.WriteLine("roundDate: " & gameScore.Value.roundDate)
-        '    Debug.WriteLine("playerName: " & gameScore.Value.playerName)
-        '    Debug.WriteLine("playerScore: " & gameScore.Value.playerScore)
-        'Next
-
-        Dim sorted = From pair In gameScoreList Order By pair.Value.playerScore
-        Dim sortedDictionary = sorted.ToDictionary(Function(p) p.Key, Function(p) p.Value)
-
-        For Each kvp As KeyValuePair(Of String, GameScore) In sortedDictionary
+        Dim sortedGameScoreList = From pair In gameScoreList Order By Convert.ToInt64(pair.Value.playerScore) Descending
+        sortedGameScoreDictionary = sortedGameScoreList.ToDictionary(Function(p) p.Key, Function(p) p.Value)
+        For Each item As KeyValuePair(Of String, GameScore) In sortedGameScoreDictionary
             Debug.WriteLine("Key = {0}, Value = {1}",
-                kvp.Key, kvp.Value)
-        Next kvp
-    End Sub
+                item.Key, item.Value.playerScore)
+        Next item
+        Return sortedGameScoreDictionary
+    End Function
 
     Public consoleWidth As Integer = 120
     Public consoleHeight As Integer = 22
 
     Public Sub Main()
-
-
-        FirbaseLoad()
-        'Console.ReadKey()
-        'FirebaseSend()
-        'Console.ReadKey()
-        FirebaseReceive()
-        Console.ReadKey()
-
         ConsoleSetup(consoleWidth, consoleHeight)
+        FirbaseLoad()
+
+        'Console.ReadKey()
+        'FirebaseReceive()
+        'Console.ReadKey()
+        'Console.ReadKey()
+
         AsyncLoopGame()
         MenuLoop()
         Console.ReadKey()
     End Sub
-
 End Module
 
 
