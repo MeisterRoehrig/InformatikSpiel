@@ -769,7 +769,7 @@ Module Module1
     End Sub
 
     Public playerNameCharacters As New List(Of String)
-    Public Sub KeyImput() 'Abfrage der Tastaturabfrage
+    Public Sub KeyImput() 'Abfrage der Tastaturabfrage 39 37
         Dim consoleKey As ConsoleKeyInfo
         While True
             consoleKey = Console.ReadKey()
@@ -782,17 +782,26 @@ Module Module1
             If (consoleKey.Key = 13) <> 0 And stayInLoop = False And editName = False Then
                 menuConfirm = True
             End If
-            If (consoleKey.Key = 38) <> 0 And stayInLoop = False And editName = False Then
+            If (consoleKey.Key = 38) <> 0 And stayInLoop = False Then
                 If menuCursorPosition > 0 Then menuCursorPosition -= 1
             End If
-            If (consoleKey.Key = 40) <> 0 And stayInLoop = False And editName = False Then
+            If (consoleKey.Key = 40) <> 0 And stayInLoop = False Then
                 If menuCursorPosition < 4 Then menuCursorPosition += 1
             End If
-            If editName Then
-                playerNameCharacters.Add(consoleKey.Key.ToString())
-                Debug.WriteLine(Join(playerNameCharacters.ToArray(), ""))
+            If editName And (consoleKey.Key <> 38) <> 0 And (consoleKey.Key <> 40) <> 0 And (consoleKey.Key <> 39) <> 0 And (consoleKey.Key <> 37) <> 0 And (consoleKey.Key <> 13) <> 0 And (consoleKey.Key <> 32) <> 0 Then
+                playerNameCharacters(cursorSelect) = consoleKey.Key.ToString()
+                If cursorSelect < 15 Then cursorSelect += 1
+                Debug.WriteLine(Join(playerNameCharacters.ToArray()))
             End If
-
+            If (consoleKey.Key = 39) <> 0 And editName Then 'Right
+                If cursorSelect < 15 Then cursorSelect += 1
+            End If
+            If (consoleKey.Key = 37) <> 0 And editName Then 'Left
+                If cursorSelect > 0 Then cursorSelect -= 1
+            End If
+            If (consoleKey.Key = 32) <> 0 And editName Then 'Left
+                If cursorSelect < 15 Then cursorSelect += 1
+            End If
             If (consoleKey.Modifiers And ConsoleModifiers.Control And consoleKey.Key = 67) <> 0 Then stayInLoop = False 'Abfrage bei Tastenkombination "Strg C" beenden der Runde
         End While
     End Sub
@@ -915,7 +924,15 @@ Module Module1
     End Sub
 
     Public editName = False
+    Dim cursorSelect As Integer = 0
+
     Public Sub ChangeName()
+        playerNameCharacters.Clear()
+        For index As Integer = 0 To 15
+            playerNameCharacters.Add("_")
+        Next
+
+        menuCursorPosition = 1
         Console.Clear()
         editName = True
         WriteAt("  _______                        _  __              ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
@@ -924,11 +941,27 @@ Module Module1
         WriteAt("\___/_//_/\_,_/_//_/\_, /\__/ /_/|_/\_,_/_/_/_/\__/ ", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
         WriteAt("                   /___/                            ", x:=0, y:=-4, CenterHorizontally:=True, CenterVertically:=True)
         While menuConfirm = False
-            Console.ForegroundColor = ConsoleColor.Blue
-            WriteAt("> Back", 3, 1)
-            Console.ForegroundColor = ConsoleColor.White
-            WriteAt("Confirm with [Space]", (consoleWidth / 2) - 20, (consoleHeight / 2) + 1)
-            WriteAt("New Name (Max 15):", (consoleWidth / 2) - 20, (consoleHeight / 2))
+            If menuCursorPosition = 0 Then
+                Console.ForegroundColor = ConsoleColor.Blue
+                WriteAt("> Back", 3, 1)
+                Console.ForegroundColor = ConsoleColor.White
+            Else
+                WriteAt("  Back", 3, 1)
+            End If
+
+            For index As Integer = 0 To 15
+                If cursorSelect = index And menuCursorPosition = 1 Then
+                    Console.ForegroundColor = ConsoleColor.Blue
+                    WriteAt(playerNameCharacters(index), (consoleWidth / 2) + index, (consoleHeight / 2))
+                    WriteAt("^", (consoleWidth / 2) + index, (consoleHeight / 2) + 1)
+                    Console.ForegroundColor = ConsoleColor.White
+                Else
+                    WriteAt(playerNameCharacters(index), (consoleWidth / 2) + index, (consoleHeight / 2))
+                    WriteAt(" ", (consoleWidth / 2) + index, (consoleHeight / 2) + 1)
+
+                End If
+            Next
+            WriteAt("Enter your new name:", (consoleWidth / 2) - 20, (consoleHeight / 2))
         End While
         menuConfirm = False
         Console.Clear()
@@ -973,6 +1006,8 @@ Module Module1
 
     Dim menuCursorPosition As Integer = 0
     Dim menuConfirm As Boolean = False
+    Dim menuRight As Boolean = False
+    Dim menuLeft As Boolean = False
     Public Sub MenuLoop()
         If musicEnabled Then menuloopSound.PlayLoop()
         While True
@@ -1165,7 +1200,7 @@ Module Module1
         'Console.ReadKey()
 
         AsyncLoopGame()
-        Introduction()
+        'Introduction()
         MenuLoop()
         Console.ReadKey()
     End Sub
