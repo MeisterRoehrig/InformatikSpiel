@@ -778,6 +778,9 @@ Module Module1
             If (consoleKey.Key = 32) <> 0 And stayInLoop = False And editName = False Then
                 menuConfirm = True
             End If
+            If (consoleKey.Key = 13) <> 0 And stayInLoop = False And editName = False Then
+                menuConfirm = True
+            End If
             If (consoleKey.Key = 38) <> 0 And stayInLoop = False And editName = False Then
                 If menuCursorPosition > 0 Then menuCursorPosition -= 1
             End If
@@ -859,7 +862,7 @@ Module Module1
             End Using
         Catch ex As Exception
             Debug.WriteLine("playerName.txt could not be reached, setting basename instead")
-            line = "Mike"
+            line = "Pocher"
         End Try
         Return line
     End Function
@@ -897,7 +900,7 @@ Module Module1
             If renderOnce Then
                 Dim runLine As Integer = -2
                 For Each gameScore As KeyValuePair(Of String, GameScore) In FirebaseReceive()
-                    If runLine <= 10 Then
+                    If runLine <= 5 Then
                         WriteAt(gameScore.Value.playerName & " - " & gameScore.Value.roundDate & " - " & gameScore.Value.playerScore, x:=0, y:=runLine, CenterHorizontally:=True, CenterVertically:=True)
                     End If
                     runLine += 1
@@ -943,7 +946,7 @@ Module Module1
             WriteAt("Philipp Brocher", (consoleWidth / 2) - 8, (consoleHeight / 2) - 1)
             WriteAt("Erik Siegel", (consoleWidth / 2) - 8, (consoleHeight / 2))
             WriteAt("Linus von Maltzan", (consoleWidth / 2) - 8, (consoleHeight / 2) + 1)
-            WriteAt("Musik: Pochers Dude", (consoleWidth / 2) - 8, (consoleHeight / 2) + 2)
+            WriteAt("Musik: David Bock", (consoleWidth / 2) - 8, (consoleHeight / 2) + 2)
         End While
         menuConfirm = False
         Console.Clear()

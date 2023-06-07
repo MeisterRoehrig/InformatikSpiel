@@ -598,19 +598,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Satari\\.nuget\\packages\\": {}
+    "C:\\Users\\SIE5EF\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\2023_SATARI_DATA\\CODE\\InformatikSpiel\\InformatikSpiel\\InformatikSpiel.vbproj",
+      "projectUniqueName": "C:\\Users\\SIE5EF\\Desktop\\Duales Studium\\2.Semester\\Informatik\\Runner96\\InformatikSpiel\\InformatikSpiel\\InformatikSpiel.vbproj",
       "projectName": "Runner96",
-      "projectPath": "D:\\2023_SATARI_DATA\\CODE\\InformatikSpiel\\InformatikSpiel\\InformatikSpiel.vbproj",
-      "packagesPath": "C:\\Users\\Satari\\.nuget\\packages\\",
-      "outputPath": "D:\\2023_SATARI_DATA\\CODE\\InformatikSpiel\\InformatikSpiel\\obj\\",
+      "projectPath": "C:\\Users\\SIE5EF\\Desktop\\Duales Studium\\2.Semester\\Informatik\\Runner96\\InformatikSpiel\\InformatikSpiel\\InformatikSpiel.vbproj",
+      "packagesPath": "C:\\Users\\SIE5EF\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\SIE5EF\\Desktop\\Duales Studium\\2.Semester\\Informatik\\Runner96\\InformatikSpiel\\InformatikSpiel\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Satari\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\SIE5EF\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -661,7 +661,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.203\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.202\\RuntimeIdentifierGraph.json"
       }
     }
   },
