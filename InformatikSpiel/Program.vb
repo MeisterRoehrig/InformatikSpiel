@@ -882,7 +882,8 @@ Module Module1
             Console.ForegroundColor = ConsoleColor.White
             Threading.Thread.Sleep(30)
         Next
-        FirebaseSend("Mike", score)
+        FirebaseSend("Pocher", score)
+
     End Sub
 
     Public Sub HighScores()
@@ -977,6 +978,7 @@ Module Module1
             If menuConfirm Then
                 menuConfirm = False
                 If menuCursorPosition = 0 Then
+
                     GameStart()
                     GameOver()
                 End If
@@ -1001,6 +1003,7 @@ Module Module1
                 WriteAt("/ (_ / _ `/  ' \/ -_) / /_/ / |/ / -_) __/", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
                 WriteAt("\___/\_,_/_/_/_/\__/  \____/|___/\__/_/   ", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
                 Console.ForegroundColor = ConsoleColor.White
+
             Else
                 WriteAt("   ___                           ___  ____", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
                 WriteAt("  / _ \__ _____  ___  ___ ____  / _ \/ __/", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
