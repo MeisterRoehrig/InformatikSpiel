@@ -9,6 +9,7 @@ Imports FireSharp.Config
 Imports FireSharp.Response
 Imports FireSharp.Interfaces
 Imports System.Security.Cryptography.X509Certificates
+Imports System.ComponentModel.DataAnnotations
 
 Module Module1
     'Funktion zur Ausgabe eines Zeichens an einer bestimmten Position der Konsole
@@ -1115,6 +1116,42 @@ Module Module1
         Return sortedGameScoreDictionary
     End Function
 
+    Public Sub Introduction()
+        If musicEnabled Then menuloopSound.PlayLoop()
+        Console.Clear()
+        WriteAt("Anleitung", x:=0, y:=-3, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("Runner96 - Das ultimative Abendteuer", x:=0, y:=-1, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("Press [Space] to continue", x:=0, y:=0, CenterHorizontally:=True, CenterVertically:=True)
+        While menuConfirm = False
+        End While
+        Console.Clear()
+        menuConfirm = False
+
+        If musicEnabled Then menuloopSound.PlayLoop()
+        Console.Clear()
+        WriteAt("Hallo lieber Spieler,", x:=0, y:=-3, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("Du möchtest Runner96 spielen und zahlreiche Hindernisse bezwingen?", x:=0, y:=-1, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("Dann ist dieses Spiel das richtige für dich.", x:=0, y:=0, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("Knacke mit diesem Avatar Highscores und arbeite dich an die Spitze der Bestenliste!", x:=0, y:=1, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("Press [Space] to continue", x:=0, y:=4, CenterHorizontally:=True, CenterVertically:=True)
+        While menuConfirm = False
+        End While
+        Console.Clear()
+        menuConfirm = False
+
+        If musicEnabled Then menuloopSound.PlayLoop()
+        Console.Clear()
+        WriteAt("Dein Spieler kann laufen und dabei springen", x:=0, y:=-3, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("Kommt ein Hindernis auf dich zu kannst du es durch einen Sprung überwinden.", x:=0, y:=-1, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("Wie springe ich?", x:=0, y:=-2, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("Mit einem kurzen Klick auf die Leertaste springt dein Avatar ab und landet anschließend wieder", x:=0, y:=-4, CenterHorizontally:=True, CenterVertically:=True)
+
+        While menuConfirm = False
+        End While
+        Console.Clear()
+        menuConfirm = False
+
+    End Sub
     Public consoleWidth As Integer = 120
     Public consoleHeight As Integer = 22
 
@@ -1128,6 +1165,7 @@ Module Module1
         'Console.ReadKey()
 
         AsyncLoopGame()
+        Introduction()
         MenuLoop()
         Console.ReadKey()
     End Sub
