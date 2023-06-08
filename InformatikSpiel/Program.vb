@@ -10,24 +10,23 @@ Imports FireSharp.Response
 Imports FireSharp.Interfaces
 Imports System.Security.Cryptography.X509Certificates
 Imports System.ComponentModel.DataAnnotations
+Imports Newtonsoft.Json.Linq
+Imports System.Drawing
+Imports System.Net.Mime.MediaTypeNames
+Imports System.Diagnostics.Eventing
 
 Module Module1
     'Funktion zur Ausgabe eines Zeichens an einer bestimmten Position der Konsole
     's ist das zu schreibende Zeichen; x und y sind die Koordinaten
     Private Sub WriteAt(s As String, x As Integer, y As Integer, Optional CenterHorizontally As Boolean = False, Optional CenterVertically As Boolean = False)
-        Try
-            If CenterHorizontally Then
-                x = (consoleWidth / 2) - (Len(s) / 2) + x
-            End If
-            If CenterVertically Then
-                y = (consoleHeight / 2) + y
-            End If
-            Console.SetCursorPosition(x, y)
-            Console.Write(s)
-        Catch e As ArgumentOutOfRangeException 'Fallback (Bei ungültiger Eingabe)
-            Console.Clear()
-            Console.WriteLine(e.Message)
-        End Try
+        If CenterHorizontally Then
+            x = (consoleWidth / 2) - (Len(s) / 2) + x
+        End If
+        If CenterVertically Then
+            y = (consoleHeight / 2) + y
+        End If
+        Console.SetCursorPosition(x, y)
+        Console.Write(s)
     End Sub
 
     'gibt aus ob Zahl ein ganzzahliger Teiler ist
@@ -47,8 +46,8 @@ Module Module1
         Console.Title = "Runner 96"
         Console.TreatControlCAsInput = True 'verhindert das Abbrechen des Programms durch Strg c: Fenster wird nicht geschlossen, GameOver wird angezeigt
         Debug.WriteLine(AppDomain.CurrentDomain.BaseDirectory.ToString())
-        playerName = LoadPlayerName()
-        musicEnabled = LoadSettings()
+        playerName = LoadSettings(2)
+        musicEnabled = LoadSettings(0)
     End Sub
 
     Public gameTimer As Integer = 0 'verstrichene Zeit seit Spielbeginn (Rundenstart)
@@ -444,6 +443,8 @@ Module Module1
     Dim playerXPosition As Integer = 1 'Ausgangsposition des Spielers
     Public Sub PlayerManager() 'Ausgabe der animierten Spielfigur an der entsprechenden Position am Bildschirm
         If playerJumpHeight <> playerJumpHeightCache Then DrawPlayer(0, playerXPosition, (consoleHeight - 7) - playerJumpHeightCache)
+        DrawPlayer(0, playerXPosition, (consoleHeight - 7) - 6)
+
         DrawPlayer(playerAnimationState, playerXPosition, (consoleHeight - 7) - playerJumpHeight)
         playerJumpHeightCache = playerJumpHeight
     End Sub
@@ -687,38 +688,23 @@ Module Module1
                 Debug.WriteLine(tyleTypeSkyRnd)
                 Debug.WriteLine(skyLayerRnd)
                 If skyLayerRnd = 1 Then
-                    skyTiles1.RemoveAt(consoleWidth - 2)
-                    skyTiles1.RemoveAt(consoleWidth - 3)
-                    skyTiles1.RemoveAt(consoleWidth - 4)
-                    skyTiles1.RemoveAt(consoleWidth - 5)
-                    skyTiles1.RemoveAt(consoleWidth - 6)
-                    skyTiles1.RemoveAt(consoleWidth - 7)
-                    skyTiles1.RemoveAt(consoleWidth - 8)
+                    For i = 2 To 8
+                        skyTiles1.RemoveAt(consoleWidth - i)
+                    Next
                     skyTiles1.Add(New Tile With {.tileType = tyleTypeSkyRnd})
-                    skyTiles1.Add(New Tile With {.tileType = 5})
-                    skyTiles1.Add(New Tile With {.tileType = 5})
-                    skyTiles1.Add(New Tile With {.tileType = 5})
-                    skyTiles1.Add(New Tile With {.tileType = 5})
-                    skyTiles1.Add(New Tile With {.tileType = 5})
-                    skyTiles1.Add(New Tile With {.tileType = 5})
-                    skyTiles1.Add(New Tile With {.tileType = 5})
+                    For i = 0 To 6
+                        skyTiles1.Add(New Tile With {.tileType = 5})
+                    Next
                     skyTiles2.Add(New Tile With {.tileType = 5})
                 Else
-                    skyTiles2.RemoveAt(consoleWidth - 2)
-                    skyTiles2.RemoveAt(consoleWidth - 3)
-                    skyTiles2.RemoveAt(consoleWidth - 4)
-                    skyTiles2.RemoveAt(consoleWidth - 5)
-                    skyTiles2.RemoveAt(consoleWidth - 6)
-                    skyTiles2.RemoveAt(consoleWidth - 7)
-                    skyTiles2.RemoveAt(consoleWidth - 8)
+
+                    For i = 2 To 8
+                        skyTiles2.RemoveAt(consoleWidth - i)
+                    Next
                     skyTiles2.Add(New Tile With {.tileType = tyleTypeSkyRnd})
-                    skyTiles2.Add(New Tile With {.tileType = 5})
-                    skyTiles2.Add(New Tile With {.tileType = 5})
-                    skyTiles2.Add(New Tile With {.tileType = 5})
-                    skyTiles2.Add(New Tile With {.tileType = 5})
-                    skyTiles2.Add(New Tile With {.tileType = 5})
-                    skyTiles2.Add(New Tile With {.tileType = 5})
-                    skyTiles2.Add(New Tile With {.tileType = 5})
+                    For i = 0 To 6
+                        skyTiles2.Add(New Tile With {.tileType = 5})
+                    Next
                     skyTiles1.Add(New Tile With {.tileType = 5})
                 End If
                 spawnTimerSky = 0
@@ -769,17 +755,18 @@ Module Module1
     End Sub
 
     Public playerNameCharacters As New List(Of String)
+    Dim fifteenFix = False
     Public Sub KeyImput() 'Abfrage der Tastaturabfrage 39 37
         Dim consoleKey As ConsoleKeyInfo
         While True
-            consoleKey = Console.ReadKey()
+            consoleKey = Console.ReadKey(True)
             If (consoleKey.Key = 32) <> 0 And stayInLoop Then   'Key32=Lertaste; wenn Leertaste gedrückt wird: setzen der Sprungvariable auf True
                 playerJump = True
             End If
-            If (consoleKey.Key = 32) <> 0 And stayInLoop = False And editName = False Then
+            If (consoleKey.Key = 32) <> 0 And stayInLoop = False Then
                 menuConfirm = True
             End If
-            If (consoleKey.Key = 13) <> 0 And stayInLoop = False And editName = False Then
+            If (consoleKey.Key = 13) <> 0 And stayInLoop = False Then
                 menuConfirm = True
             End If
             If (consoleKey.Key = 38) <> 0 And stayInLoop = False Then
@@ -788,19 +775,46 @@ Module Module1
             If (consoleKey.Key = 40) <> 0 And stayInLoop = False Then
                 If menuCursorPosition < 4 Then menuCursorPosition += 1
             End If
-            If editName And (consoleKey.Key <> 38) <> 0 And (consoleKey.Key <> 40) <> 0 And (consoleKey.Key <> 39) <> 0 And (consoleKey.Key <> 37) <> 0 And (consoleKey.Key <> 13) <> 0 And (consoleKey.Key <> 32) <> 0 Then
-                playerNameCharacters(cursorSelect) = consoleKey.Key.ToString()
-                If cursorSelect < 15 Then cursorSelect += 1
-                Debug.WriteLine(Join(playerNameCharacters.ToArray()))
-            End If
-            If (consoleKey.Key = 39) <> 0 And editName Then 'Right
-                If cursorSelect < 15 Then cursorSelect += 1
-            End If
-            If (consoleKey.Key = 37) <> 0 And editName Then 'Left
-                If cursorSelect > 0 Then cursorSelect -= 1
-            End If
-            If (consoleKey.Key = 32) <> 0 And editName Then 'Left
-                If cursorSelect < 15 Then cursorSelect += 1
+            If editName And menuCursorPosition <> 0 Then
+                If (consoleKey.Key <> 46) <> 0 And (consoleKey.Key <> 38) <> 0 And (consoleKey.Key <> 40) <> 0 And (consoleKey.Key <> 39) <> 0 And (consoleKey.Key <> 37) <> 0 And (consoleKey.Key <> 13) <> 0 And (consoleKey.Key <> 8) <> 0 Then
+                    If consoleKey.Key >= 48 And consoleKey.Key <= 57 Then
+                        playerNameCharacters(cursorSelect) = consoleKey.Key.ToString()(1)
+                    ElseIf consoleKey.Key >= 96 And consoleKey.Key <= 105 Then
+                        playerNameCharacters(cursorSelect) = consoleKey.Key.ToString()(6)
+                    ElseIf consoleKey.Key = 32 Then
+                        playerNameCharacters(cursorSelect) = "-"
+                    Else
+                        playerNameCharacters(cursorSelect) = consoleKey.Key.ToString()(0)
+                    End If
+                    If cursorSelect < 15 Then cursorSelect += 1
+                    Debug.WriteLine(Join(playerNameCharacters.ToArray(), " "))
+                    Debug.WriteLine(cursorSelect)
+                End If
+                If (consoleKey.Key = 39) <> 0 Then 'Right
+                    If cursorSelect < 15 Then cursorSelect += 1
+                End If
+                If (consoleKey.Key = 37) <> 0 Then 'Left
+                    If cursorSelect > 0 Then cursorSelect -= 1
+                End If
+                If (consoleKey.Key = 8) <> 0 Then 'Left
+                    If cursorSelect > 0 Then
+                        If cursorSelect < 15 Or fifteenFix Then
+                            playerNameCharacters(cursorSelect - 1) = "_"
+                            cursorSelect -= 1
+                            fifteenFix = False
+                        Else
+                            playerNameCharacters(cursorSelect) = "_"
+                            fifteenFix = True
+                        End If
+                    End If
+                End If
+                If (consoleKey.Key = 13) <> 0 Then
+                    menuCursorPosition = 0
+                    menuConfirm = False
+                End If
+                If (consoleKey.Key = 46) <> 0 Then 'del
+                    playerNameCharacters(cursorSelect) = "_"
+                End If
             End If
             If (consoleKey.Modifiers And ConsoleModifiers.Control And consoleKey.Key = 67) <> 0 Then stayInLoop = False 'Abfrage bei Tastenkombination "Strg C" beenden der Runde
         End While
@@ -834,48 +848,63 @@ Module Module1
         AsyncLoopRound()
     End Sub
 
-    Public Sub SaveSettings(ByVal spielZurücksetzen As Boolean)
-        Try
-            System.IO.File.WriteAllText("musicsettings.txt", spielZurücksetzen)
-        Catch ex As Exception
-            Debug.WriteLine("musicsettings.txt could not be reached")
-        End Try
+    Public Sub SaveSettings(ByRef lineOfFile As Integer, Optional musicEnabled As Boolean = False, Optional openFirstTime As Boolean = False, Optional playerName As String = "")
+        If lineOfFile = 0 Then
+            Try
+                Dim data As String() = {musicEnabled.ToString, LoadSettings(1), LoadSettings(2)}
+                File.WriteAllLines("settings.txt", data)
+            Catch ex As Exception
+                Debug.WriteLine("[LoadSettings] musicEnabled could not be written to settings.txt")
+            End Try
+        End If
+        If lineOfFile = 1 Then
+            Try
+                Dim data As String() = {LoadSettings(0), openFirstTime.ToString(), LoadSettings(2)}
+                File.WriteAllLines("settings.txt", data)
+            Catch ex As Exception
+                Debug.WriteLine("[LoadSettings] openFirstTime could not be written to settings.txt")
+            End Try
+        End If
+        If lineOfFile = 2 Then
+            Try
+                Dim data As String() = {LoadSettings(0), LoadSettings(1), playerName}
+                File.WriteAllLines("settings.txt", data)
+            Catch ex As Exception
+                Debug.WriteLine("[LoadSettings] playerName could not be written to settings.txt")
+            End Try
+        End If
     End Sub
 
-    Public Function LoadSettings() As Boolean
-        Dim line As Boolean = True
-        Try
-            Using reader As New StreamReader("musicsettings.txt")
-                line = Convert.ToBoolean(reader.ReadLine())
-            End Using
-        Catch ex As Exception
-            Debug.WriteLine("musicsettings.txt could not be reached")
-            line = True
-        End Try
-        Return line
-
+    Public Function LoadSettings(ByRef lineOfFile As Integer)
+        If lineOfFile = 0 Then
+            Try
+                Return Convert.ToBoolean(File.ReadAllLines("settings.txt")(0))
+            Catch ex As Exception
+                Debug.WriteLine("[LoadSettings] settings.txt could not be read")
+                Debug.WriteLine("[LoadSettings] setting musicEnabled = False")
+                Return False
+            End Try
+        End If
+        If lineOfFile = 1 Then
+            Try
+                Return Convert.ToBoolean(File.ReadAllLines("settings.txt")(1))
+            Catch ex As Exception
+                Debug.WriteLine("[LoadSettings] settings.txt could not be read")
+                Debug.WriteLine("[LoadSettings] setting openFirstTime = False")
+                Return False
+            End Try
+        End If
+        If lineOfFile = 2 Then
+            Try
+                Return File.ReadAllLines("settings.txt")(2)
+            Catch ex As Exception
+                Debug.WriteLine("[LoadSettings] settings.txt could not be read")
+                Debug.WriteLine("[LoadSettings] setting basename instead")
+                Return "PLAYER-1"
+            End Try
+        End If
     End Function
 
-    Public Sub SavePlayerName(ByVal playerName As String)
-        Try
-            System.IO.File.WriteAllText("playerName.txt", playerName)
-        Catch ex As Exception
-            Debug.WriteLine("playerName.txt could not be reached")
-        End Try
-    End Sub
-
-    Public Function LoadPlayerName() As String
-        Dim line As String
-        Try
-            Using reader As New StreamReader("playerName.txt")
-                line = reader.ReadLine()
-            End Using
-        Catch ex As Exception
-            Debug.WriteLine("playerName.txt could not be reached, setting basename instead")
-            line = "Pocher"
-        End Try
-        Return line
-    End Function
 
     Public Sub GameOver() 'wird ausgeführt bei Berührung der Spielfigur mit einem Hindernis; Ausgeben des Game-Over Bildschirms
         'My.Computer.Audio.Play("23DB05PJ_sfxDeath_v1.01(1).wav", AudioPlayMode.Background) Sound Tod
@@ -892,7 +921,17 @@ Module Module1
             Console.ForegroundColor = ConsoleColor.White
             Threading.Thread.Sleep(30)
         Next
-        FirebaseSend("Pocher", score)
+        FirebaseSend(LoadSettings(2), score)
+        WriteAt("                                          ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("                                          ", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("                                          ", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("                                          ", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("                                     ", x:=0, y:=-4, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("                                     ", x:=0, y:=-3, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("                                     ", x:=0, y:=-2, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("                                     ", x:=0, y:=-1, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("                                     ", x:=0, y:=0, CenterHorizontally:=True, CenterVertically:=True)
+
 
     End Sub
 
@@ -928,25 +967,47 @@ Module Module1
 
     Public Sub ChangeName()
         playerNameCharacters.Clear()
+        playerName = LoadSettings(2)
+        If openFirstTime Then playerName = ""
         For index As Integer = 0 To 15
-            playerNameCharacters.Add("_")
+            Try
+                playerNameCharacters.Add(playerName(index))
+            Catch
+                playerNameCharacters.Add("_")
+            End Try
         Next
-
+        cursorSelect = 0
         menuCursorPosition = 1
-        Console.Clear()
+        If openFirstTime = False Then Console.Clear()
         editName = True
-        WriteAt("  _______                        _  __              ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
-        WriteAt(" / ___/ /  ___ ____  ___ ____   / |/ /__ ___ _  ___ ", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
-        WriteAt("/ /__/ _ \/ _ `/ _ \/ _ `/ -_) /    / _ `/  ' \/ -_)", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
-        WriteAt("\___/_//_/\_,_/_//_/\_, /\__/ /_/|_/\_,_/_/_/_/\__/ ", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
-        WriteAt("                   /___/                            ", x:=0, y:=-4, CenterHorizontally:=True, CenterVertically:=True)
-        While menuConfirm = False
+        If openFirstTime = False Then
+            WriteAt("  _______                        _  __              ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
+            WriteAt(" / ___/ /  ___ ____  ___ ____   / |/ /__ ___ _  ___ ", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
+            WriteAt("/ /__/ _ \/ _ `/ _ \/ _ `/ -_) /    / _ `/  ' \/ -_)", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
+            WriteAt("\___/_//_/\_,_/_//_/\_, /\__/ /_/|_/\_,_/_/_/_/\__/ ", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
+            WriteAt("                   /___/                            ", x:=0, y:=-4, CenterHorizontally:=True, CenterVertically:=True)
+        End If
+        WriteAt("Enter player name:", (consoleWidth / 2) - 20, (consoleHeight / 2))
+        While True
             If menuCursorPosition = 0 Then
                 Console.ForegroundColor = ConsoleColor.Blue
-                WriteAt("> Back", 3, 1)
+                If openFirstTime Then
+                    WriteAt("> Continue ", 3, 1)
+                Else
+                    WriteAt("> Back ", 3, 1)
+                End If
                 Console.ForegroundColor = ConsoleColor.White
+                If menuConfirm Then Exit While
             Else
-                WriteAt("  Back", 3, 1)
+                If openFirstTime Then
+                    WriteAt("  Continue ", 3, 1)
+                Else
+                    WriteAt("  Back ", 3, 1)
+                End If
+                menuConfirm = False
+            End If
+            If menuCursorPosition > 1 Then
+                menuCursorPosition = 1
             End If
 
             For index As Integer = 0 To 15
@@ -961,8 +1022,26 @@ Module Module1
 
                 End If
             Next
-            WriteAt("Enter your new name:", (consoleWidth / 2) - 20, (consoleHeight / 2))
         End While
+
+        Dim characterPosition = 0
+        Dim playerNameCharactersCashe As New List(Of String)
+        For Each character As String In playerNameCharacters
+            If character <> "_" Then
+                playerNameCharactersCashe.Add(character)
+                characterPosition += 1
+            End If
+        Next
+
+        Dim playerNameCashe As String = Join(playerNameCharactersCashe.Where(Function(s) Not String.IsNullOrEmpty(s)).ToArray(), "")
+        If playerNameCashe <> "" Then
+            playerName = playerNameCashe
+            SaveSettings(2, playerName:=playerName)
+        Else
+            playerName = "NONAME"
+            SaveSettings(2, playerName:=playerName)
+        End If
+
         menuConfirm = False
         Console.Clear()
     End Sub
@@ -1003,6 +1082,7 @@ Module Module1
 
     Dim menuloopSound As New MciPlayer("menuloop.mp3", "1")
     Dim gamemusicSound As New MciPlayer("music.mp3", "2")
+    Dim introSound As New MciPlayer("intro.mp3", "3")
 
     Dim menuCursorPosition As Integer = 0
     Dim menuConfirm As Boolean = False
@@ -1122,7 +1202,7 @@ Module Module1
         Try
             fClient = New FireSharp.FirebaseClient(fConfig)
         Catch
-            Debug.WriteLine("Could not connect to Firebase services")
+            Debug.WriteLine("[FirebaseConfig] Could not connect to Firebase services")
         End Try
     End Sub
 
@@ -1130,77 +1210,165 @@ Module Module1
         Dim gameScore As New GameScore() With
             {
             .roundId = Convert.ToInt64((Date.UtcNow - New DateTime(1970, 1, 1)).TotalMilliseconds).ToString(),
-            .roundDate = DateTime.Now.ToString("dd.MM.yyyy"),
+            .roundDate = DateTime.Now.ToString("dd.MM.yy H:mm"),
             .playerName = playerName,
             .playerScore = playerScore.ToString()
             }
-        Dim fSetter = fClient.SetAsync("GameScoreList/" + gameScore.roundId, gameScore)
-        Debug.WriteLine("Data uploaded successfully")
+        Try
+            Dim fSetter = fClient.SetAsync("GameScoreList/" + gameScore.roundId, gameScore)
+        Catch ex As Exception
+            Debug.WriteLine("[FirebaseSend] High Score could not be uploaded to Firebase.com")
+        End Try
+
     End Sub
 
-    Public sortedGameScoreDictionary As Dictionary(Of String, GameScore)
+
     Private Function FirebaseReceive() As Dictionary(Of String, GameScore)
-        Dim fReceiver As FirebaseResponse = fClient.Get("GameScoreList/")
-        Dim gameScoreList As Dictionary(Of String, GameScore) = fReceiver.ResultAs(Of Dictionary(Of String, GameScore))
-        Dim sortedGameScoreList = From pair In gameScoreList Order By Convert.ToInt64(pair.Value.playerScore) Descending
-        sortedGameScoreDictionary = sortedGameScoreList.ToDictionary(Function(p) p.Key, Function(p) p.Value)
-        For Each item As KeyValuePair(Of String, GameScore) In sortedGameScoreDictionary
-            Debug.WriteLine("Key = {0}, Value = {1}",
-                item.Key, item.Value.playerScore)
-        Next item
+        Dim sortedGameScoreDictionary As New Dictionary(Of String, GameScore)
+        Dim fReceiver As FirebaseResponse
+        Dim gameScoreList As Dictionary(Of String, GameScore)
+        Try
+            fReceiver = fClient.Get("GameScoreList/")
+            gameScoreList = fReceiver.ResultAs(Of Dictionary(Of String, GameScore))
+
+            Debug.WriteLine("[FirebaseReceive] GameScoreList was successfully fetched from Firebase.com")
+        Catch ex As Exception
+            Debug.WriteLine("[FirebaseReceive] GameScoreList could not be loaded")
+            sortedGameScoreDictionary.Clear()
+            sortedGameScoreDictionary.Add(key:="0", value:=New GameScore With {.roundId = "", .roundDate = "UNABLE TO CONNECT TO DATABASE", .playerName = "", .playerScore = ""})
+            Return sortedGameScoreDictionary
+        End Try
+        Debug.WriteLine("fReceiver: Got Data")
+        Try
+            Dim sortedGameScoreList = From pair In gameScoreList Order By Convert.ToInt64(pair.Value.playerScore) Descending
+            sortedGameScoreDictionary = sortedGameScoreList.ToDictionary(Function(p) p.Key, Function(p) p.Value)
+            For Each item As KeyValuePair(Of String, GameScore) In sortedGameScoreDictionary
+                Debug.WriteLine("Key = {0}, Value = {1}",
+                        item.Key, item.Value.playerScore)
+            Next item
+        Catch ex As Exception
+            Debug.WriteLine("[FirebaseReceive] GameScoreList is empty, populate with placeholder data instead")
+            sortedGameScoreDictionary.Clear()
+            sortedGameScoreDictionary.Add(key:="0", value:=New GameScore With {.roundId = "", .roundDate = "NO DATA", .playerName = "", .playerScore = ""})
+        End Try
         Return sortedGameScoreDictionary
     End Function
 
+    Dim openFirstTime = LoadSettings(1)
     Public Sub Introduction()
-        If musicEnabled Then menuloopSound.PlayLoop()
         Console.Clear()
-        WriteAt("Anleitung", x:=0, y:=-3, CenterHorizontally:=True, CenterVertically:=True)
-        WriteAt("Runner96 - Das ultimative Abendteuer", x:=0, y:=-1, CenterHorizontally:=True, CenterVertically:=True)
-        WriteAt("Press [Space] to continue", x:=0, y:=0, CenterHorizontally:=True, CenterVertically:=True)
+        introSound.PlayFromStart()
+        WriteAt("   ___ ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("  / _ \", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt(" / , _/", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("/_/|_| ", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
+        Threading.Thread.Sleep(35)
+        WriteAt("   ___      ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("  / _ \__ __", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt(" / , _/ // /", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("/_/|_|\_,_/ ", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
+        Threading.Thread.Sleep(35)
+        WriteAt("   ___          ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("  / _ \__ _____ ", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt(" / , _/ // / _ \", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("/_/|_|\_,_/_//_/", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
+        Threading.Thread.Sleep(35)
+        WriteAt("   ___               ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("  / _ \__ _____  ___ ", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt(" / , _/ // / _ \/ _ \", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("/_/|_|\_,_/_//_/_//_/", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
+        Threading.Thread.Sleep(35)
+        WriteAt("   ___                    ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("  / _ \__ _____  ___  ___ ", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt(" / , _/ // / _ \/ _ \/ -_)", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("/_/|_|\_,_/_//_/_//_/\__/ ", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
+        Threading.Thread.Sleep(35)
+        WriteAt("   ___                        ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("  / _ \__ _____  ___  ___ ____", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt(" / , _/ // / _ \/ _ \/ -_) __/", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("/_/|_|\_,_/_//_/_//_/\__/_/   ", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
+        Threading.Thread.Sleep(35)
+        WriteAt("   ___                           ___ ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("  / _ \__ _____  ___  ___ ____  / _ \", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt(" / , _/ // / _ \/ _ \/ -_) __/  \_, /", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("/_/|_|\_,_/_//_/_//_/\__/_/    /___/ ", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
+        Threading.Thread.Sleep(35)
+        WriteAt("   ___                           ___  ____", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("  / _ \__ _____  ___  ___ ____  / _ \/ __/", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt(" / , _/ // / _ \/ _ \/ -_) __/  \_, / _ \ ", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
+        WriteAt("/_/|_|\_,_/_//_/_//_/\__/_/    /___/\___/ ", x:=0, y:=-5, CenterHorizontally:=True, CenterVertically:=True)
+        If musicEnabled Then menuloopSound.PlayLoop()
+        Threading.Thread.Sleep(600)
+        If openFirstTime = False Then MenuLoop()
+        While menuConfirm = False
+            Console.ForegroundColor = ConsoleColor.Blue
+            WriteAt("Press [Space] to continue", x:=0, y:=0, CenterHorizontally:=True, CenterVertically:=True)
+            Console.ForegroundColor = ConsoleColor.White
+            If menuConfirm = False Then Threading.Thread.Sleep(600)
+            If menuConfirm = False Then Threading.Thread.Sleep(600)
+            WriteAt("                         ", x:=0, y:=0, CenterHorizontally:=True, CenterVertically:=True)
+            If menuConfirm = False Then Threading.Thread.Sleep(600)
+            If menuConfirm = False Then Threading.Thread.Sleep(600)
+        End While
+        menuConfirm = False
+        Console.Clear()
+        Console.ForegroundColor = ConsoleColor.Blue
+        WriteAt("Press [Space] to continue", 3, 1)
+        Console.ForegroundColor = ConsoleColor.White
+        WriteAt("Willkommen bei Runner 96, dem ultimativen Test für", x:=35, y:=-6, CenterVertically:=True)
+        WriteAt("Geschwindigkeit, Reflexe und Ausdauer!", x:=35, y:=-5, CenterVertically:=True)
+        WriteAt("Überwinde unzählige Hindernisse und laufe so weit wie", x:=35, y:=-3, CenterVertically:=True)
+        WriteAt("möglich, während du dich in einer tückischen Welt voller ", x:=35, y:=-2, CenterVertically:=True)
+        WriteAt("Barrieren und Hindernissen bewegst. ", x:=35, y:=-1, CenterVertically:=True)
+        WriteAt("Präzision und Timing sind der Schlüssel, denn jede ", x:=35, y:=1, CenterVertically:=True)
+        WriteAt("Berührung eines Hindernisses bedeutet das Ende. ", x:=35, y:=2, CenterVertically:=True)
+        WriteAt("Tritt gegen dich selbst an oder fordere Freunde heraus, ", x:=35, y:=4, CenterVertically:=True)
+        WriteAt("um deinen Highscore zu übertreffen. ", x:=35, y:=5, CenterVertically:=True)
         While menuConfirm = False
         End While
-        Console.Clear()
         menuConfirm = False
-
-        If musicEnabled Then menuloopSound.PlayLoop()
         Console.Clear()
-        WriteAt("Hallo lieber Spieler,", x:=0, y:=-3, CenterHorizontally:=True, CenterVertically:=True)
-        WriteAt("Du möchtest Runner96 spielen und zahlreiche Hindernisse bezwingen?", x:=0, y:=-1, CenterHorizontally:=True, CenterVertically:=True)
-        WriteAt("Dann ist dieses Spiel das richtige für dich.", x:=0, y:=0, CenterHorizontally:=True, CenterVertically:=True)
-        WriteAt("Knacke mit diesem Avatar Highscores und arbeite dich an die Spitze der Bestenliste!", x:=0, y:=1, CenterHorizontally:=True, CenterVertically:=True)
-        WriteAt("Press [Space] to continue", x:=0, y:=4, CenterHorizontally:=True, CenterVertically:=True)
+        Console.ForegroundColor = ConsoleColor.Blue
+        WriteAt("Press [Space] to continue", 3, 1)
+        Console.ForegroundColor = ConsoleColor.White
+        WriteAt("Bevor es losgeht noch ein paar kurze Tipps wie du dich ", x:=35, y:=-6, CenterVertically:=True)
+        WriteAt("durch die Welt von Runner 96 bewegst:", x:=35, y:=-5, CenterVertically:=True)
+        WriteAt("- Durch drücken der Leertaste kannst du während", x:=35, y:=-3, CenterVertically:=True)
+        WriteAt("  einer Runde mit deinem Charakter springen und", x:=35, y:=-2, CenterVertically:=True)
+        WriteAt("  so auf dich zukommende Hindernisse überwinden.", x:=35, y:=-1, CenterVertically:=True)
+        WriteAt("- Durch betätigen der Pfeiltasten kannst du", x:=35, y:=1, CenterVertically:=True)
+        WriteAt("  zwischen verschiedenen menüpunkten Wählen", x:=35, y:=2, CenterVertically:=True)
+        WriteAt("- Mit der Entertaste oder der Leertaste bestätigst", x:=35, y:=4, CenterVertically:=True)
+        WriteAt("  du die, blau hinterlegte, aktuelle Auswahl", x:=35, y:=5, CenterVertically:=True)
         While menuConfirm = False
         End While
-        Console.Clear()
         menuConfirm = False
-
-        If musicEnabled Then menuloopSound.PlayLoop()
         Console.Clear()
-        WriteAt("Dein Spieler kann laufen und dabei springen", x:=0, y:=-3, CenterHorizontally:=True, CenterVertically:=True)
-        WriteAt("Kommt ein Hindernis auf dich zu kannst du es durch einen Sprung überwinden.", x:=0, y:=-1, CenterHorizontally:=True, CenterVertically:=True)
-        WriteAt("Wie springe ich?", x:=0, y:=-2, CenterHorizontally:=True, CenterVertically:=True)
-        WriteAt("Mit einem kurzen Klick auf die Leertaste springt dein Avatar ab und landet anschließend wieder", x:=0, y:=-4, CenterHorizontally:=True, CenterVertically:=True)
-
+        WriteAt("Damit du starten kannst müssen wir noch wissen unter", x:=35, y:=-6, CenterVertically:=True)
+        WriteAt("welchem Namen du antrittst.", x:=35, y:=-5, CenterVertically:=True)
+        ChangeName()
+        Console.ForegroundColor = ConsoleColor.Blue
+        WriteAt("> Continue", 3, 1)
+        Console.ForegroundColor = ConsoleColor.White
+        WriteAt("Alles klar " & playerName & " dann kann es ja los gehen!", x:=35, y:=-6, CenterVertically:=True)
+        WriteAt("Schnür deine Schuhe und stürze dich in das Abenteuer", x:=35, y:=-4, CenterVertically:=True)
+        WriteAt("von Runner 96 und zeige, was in dir steckt.", x:=35, y:=-3, CenterVertically:=True)
         While menuConfirm = False
         End While
-        Console.Clear()
         menuConfirm = False
-
+        openFirstTime = False
+        SaveSettings(1, openFirstTime:=openFirstTime)
+        Console.Clear()
     End Sub
+
     Public consoleWidth As Integer = 120
     Public consoleHeight As Integer = 22
 
     Public Sub Main()
         ConsoleSetup(consoleWidth, consoleHeight)
         FirbaseLoad()
-
-        'Console.ReadKey()
-        'FirebaseReceive()
-        'Console.ReadKey()
-        'Console.ReadKey()
-
         AsyncLoopGame()
-        'Introduction()
+        Introduction()
         MenuLoop()
         Console.ReadKey()
     End Sub
