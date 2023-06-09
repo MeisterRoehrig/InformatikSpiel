@@ -29,7 +29,7 @@ Module Module1
     Private initiateSounds As Boolean = True 'Damit Sounds nur einmal geladen werden
     Private playJumpSound As Boolean = False  'Wenn True wird der jeweilige Sound abgespielt
     Private playBackgroundSound As Boolean = False
-    Private playDethSound As Boolean = False
+    Private playDeathSound As Boolean = False
     Private playScoreSound As Boolean = False
     Private playBigScoreSound As Boolean = False
     Private menuloopSound As New MciPlayer("menuloop.mp3", "1") 'Hintergrundmusik des Menues
@@ -745,7 +745,7 @@ Module Module1
         While playerInRound
             If groundTiles(6).tileType <> 0 Then
                 If playerJumpHeight < 0.2 Then
-                    playDethSound = True
+                    playDeathSound = True
                     gameOverBoolean = True
                     playerInRound = False
                 End If
@@ -756,10 +756,8 @@ Module Module1
                 roundScore += 1
                 If isDivisible(roundScore, 10) Then 'Alle 10 Ueberwundenen Hindernisse wird ein anderer sound gespielt fuer ein bisschen Abwechslung
                     playBigScoreSound = True
-                    playScoreSound = True
-                Else
-                    playScoreSound = True 'wenn playScoreSound true ist wird der score sound abgespielt
                 End If
+                playScoreSound = True 'wenn playScoreSound true ist wird der score sound abgespielt
             End If
             Threading.Thread.Sleep(0.2)
         End While
@@ -774,11 +772,14 @@ Module Module1
                 playerJump = False
             End If
             If animateJump Then 'bewegt Spielfigur nach oben bis maximale Sprunghoehe erreicht ist (springen)
-                If playerJumpHeight < 6 Then playerJumpHeight += 2
+                If playerJumpHeight < 5 Then '5 ist hier die Maximale Sprunghoehe, ist diese erreicht wird die Spielfigur nicht weiter nach oben bewegt und kehrt in die ausgangsposition zurueck
+                    playerJumpHeight += 2
+                Else
+                    animateJump = False
+                End If
             Else
                 If playerJumpHeight > 0 Then playerJumpHeight -= 1 'Animation der Spielfigur in die Ausgangsposition (landen)
             End If
-            If playerJumpHeight > 5 Then animateJump = False '5 ist hier die Maximale Sprunghoehe, ist diese erreicht wird die Spielfigur nicht weiter nach oben bewegt und kehrt in die ausgangsposition zurueck
             If playerAnimationState = 7 Then 'Cycled durch die Laufsequenz
                 playerAnimationState = 1
             Else
@@ -878,9 +879,9 @@ Module Module1
                 Snds.Play("Jump")
                 playJumpSound = False
             End If
-            If playDethSound Then
+            If playDeathSound Then
                 Snds.Play("Death")
-                playDethSound = False
+                playDeathSound = False
             End If
             If playScoreSound Then
                 Snds.Play("Score")
