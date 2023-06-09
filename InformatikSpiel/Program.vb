@@ -7,43 +7,43 @@ Module Module1
     Private Const constConsoleWidth As Integer = 120
     Private Const constConsoleHeight As Integer = 22
     Private Const constPlayerXPosition As Integer = 1 'Abstand Spielfigur zum linken Rand
-    Private Const constRandomLowerBound As Integer = 0 'Unter Grenze für die zufällige generierung von Hindernissen und Wolken
-    Private Const constRandomUpperBound As Integer = 5 'Obere Grenze für die zufällige generierung von Hindernissen und Wolken
+    Private Const constRandomLowerBound As Integer = 0 'Unter Grenze fuer die zufaellige Generierung von Hindernissen und Wolken
+    Private Const constRandomUpperBound As Integer = 5 'Obere Grenze fuer die zufaellige Generierung von Hindernissen und Wolken
 
-    Private gameTimer As Integer = 0
+    Private gameTimer As Integer = 0 'Verstrichene Zeit seit begin der Runde
     Private gameTimerCache As Integer = 0
-    Private gameFps As Double = 0
-    Private roundScore As Integer = 0
+    Private gameFps As Double = 0 'Frames Pro Sekunde
+    Private roundScore As Integer = 0 'Erreichter Highscore der Runde
     Private playerJumpHeight As Integer
     Private playerJumpHeightCache As Integer
-    Private groundTiles As New List(Of Tile) 'Liste bestehend aus Bodenstücken
-    Private skyTiles1 As New List(Of Tile) 'Liste bestehend aus Wolken
+    Private groundTiles As New List(Of Tile) 'Liste bestehend aus Bodenstuecken fuer den Untergrund
+    Private skyTiles1 As New List(Of Tile) 'Liste bestehend aus Wolken fuer den Himmel
     Private skyTiles2 As New List(Of Tile)
-    Private playerInRound As Boolean = False 'Solange True, bis Runde beendet werden soll (Bei Coolision mit Hinderniss)
-    Private gameOverBoolean As Boolean = False 'Wenn True, ist das Menü im GameOver look
-    Private playerAnimationState As Integer 'speichert den vorherigen Frame der Animation des Players
+    Private playerInRound As Boolean = False 'Solange True, bis Runde beendet werden soll (Bei Collision mit Hindernissen)
+    Private gameOverBoolean As Boolean = False 'Wenn True, ist das Menue im GameOver look
+    Private playerAnimationState As Integer 'Speichert den vorherigen Frame der Animation des Players
     Private playerJump As Boolean 'True, wenn Sprunganimation gestartet werden soll
     Private animateJump As Boolean = False 'Variable ist True sofern sich der Spieler aktiv in einem Sprung befindet
 
-    Private Snds As New MultiSounds 'Externer sound Player für parallele sounds
-    Private initiateSounds As Boolean = True 'Damit sounds nur einmal geladen werden
-    Private playJumpSound As Boolean = False  'Wenn True wird der jewailige sound abgespielt
+    Private Snds As New MultiSounds 'Externer sound Player fuer parallele Sounds
+    Private initiateSounds As Boolean = True 'Damit Sounds nur einmal geladen werden
+    Private playJumpSound As Boolean = False  'Wenn True wird der jeweilige Sound abgespielt
     Private playBackgroundSound As Boolean = False
     Private playDethSound As Boolean = False
     Private playScoreSound As Boolean = False
     Private playBigScoreSound As Boolean = False
-    Private menuloopSound As New MciPlayer("menuloop.mp3", "1") 'Hintergrundmusik des Menüs
+    Private menuloopSound As New MciPlayer("menuloop.mp3", "1") 'Hintergrundmusik des Menues
     Private gamemusicSound As New MciPlayer("music.mp3", "2") 'Hintergrundmusik werdend der Runde
-    Private introSound As New MciPlayer("intro.mp3", "3") 'Soundeffect des Runner96 Logos
+    Private introSound As New MciPlayer("intro.mp3", "3") 'Soundeffekt des Runner96 Logos
 
-    Private keyInputDelay As Boolean = True ''Fügt ein kurzes Delay hinzu bevor die nächste Runde gestartet werden kann
-    Private selectedMenuOption As Integer = 0 'Welcher Menüpunkt ausgewählt ist und im fall von menuConfirm=True bestätigt wird
-    Private menuConfirm As Boolean = False 'Wird True bei eingabe von Enter oder Leertaste und bestätigt die Auswahl
-    Private musicEnabled As Boolean 'Hintergrund musik wird abgespielt wenn True
-    Private changeNameMenuOpen = False 'True wenn ChangeName Menü geöffnet ist
+    Private keyInputDelay As Boolean = True ''Fuegt ein kurzes Delay hinzu bevor die naechste Runde gestartet werden kann
+    Private selectedMenuOption As Integer = 0 'Welcher Menuepunkt ausgewaehlt ist und im Fall von menuConfirm=True bestaetigt wird
+    Private menuConfirm As Boolean = False 'Wird True bei eingabe von Enter oder Leertaste und bestaetigt die Auswahl
+    Private musicEnabled As Boolean 'Hintergrund Musik wird abgespielt wenn True
+    Private changeNameMenuOpen = False 'True wenn ChangeName Menue geoeffnet ist
     Private nameFieldCursorLocation As Integer = 0 'Position des Cursors des Change Name Fields
     Private playerNameCharacters As New List(Of String) 'Liste welche bei Eingabe die Zeichen beinhaltet aus denen der PlayerName besteht
-    Private openFirstTime = LoadSettings(1) 'Ist True wenn die Application zum ersten mal geöffnet wird
+    Private openFirstTime = LoadSettings(1) 'Ist True wenn die Application zum ersten mal geoeffnet wird
 
     Private fClient As IFirebaseClient
     Private fConfig As New FirebaseConfig() With 'Firebase Datenbank Zugang
@@ -52,22 +52,22 @@ Module Module1
         .BasePath = "https://informatikspiel-default-rtdb.europe-west1.firebasedatabase.app/"
         }
 
-    Public Class Tile 'Bodenstück bestehend aus tileType - eigentlich überflüssig hatte das ursprünglich so gemacht falls man den Bodenstücken noch weitere eigenschaften geben will
+    Public Class Tile 'Bodenstueck bestehend aus tileType - Eigentlich ueberfluessig hatte das urspruenglich so gemacht falls man den Bodenstuecken noch weitere eigenschaften geben will
         Public Property tileType As Integer
     End Class
 
-    Public Class GameScore 'GameScore ist das Object welches nach abschluss der Runde auf die Datenbank gelanden wird
+    Public Class GameScore 'GameScore ist das Object welches nach Abschluss der Runde auf die Datenbank geladen wird
         Public Property roundId As String = ""
         Public Property roundDate As String = ""
         Public Property playerName As String = ""
         Public Property playerScore As String = ""
     End Class
 
-    'WirteAt() ermöglicht das ausgeben eines Strings an einer bestimmten Position des Consolenfensters
-    'x,y sind absolute entfernungen zum consolen ursprung es sei denn CenterHorizontally oder CenterVertically ist True, dann geben x,y den versatz des strings relativ zur mitte der Console an
+    'WirteAt() Ermoeglicht das ausgeben eines Strings an einer bestimmten Position des Konsolenfensters
+    'x,y sind absolute Entfernungen zum Konsolen Ursprung es sei denn CenterHorizontally oder CenterVertically ist True, dann geben x,y den Versatz des Strings relativ zur Mitte der Console an
     Public Sub WriteAt(s As String, x As Integer, y As Integer, Optional CenterHorizontally As Boolean = False, Optional CenterVertically As Boolean = False)
         If CenterHorizontally Then
-            x = (constConsoleWidth / 2) - (Len(s) / 2) + x 'Len(s)/2 für mitte des Strings
+            x = (constConsoleWidth / 2) - (Len(s) / 2) + x 'Len(s)/2 fuer Mitte des Strings
         End If
         If CenterVertically Then
             y = (constConsoleHeight / 2) + y
@@ -87,12 +87,12 @@ Module Module1
         Console.SetBufferSize(consoleWidth, consoleHeight)
         Console.CursorVisible = False
         Console.Title = "Runner 96"
-        Console.TreatControlCAsInput = True 'deaktiviert standardmäsige tastenkominationen wie ctrl + c zum schließen des fensters 
-        Debug.WriteLine(AppDomain.CurrentDomain.BaseDirectory.ToString()) 'File Path zum root folder der Aplication
-        musicEnabled = LoadSettings(0) 'lädt einstellungen ob hintergrund musik ein oder ausgeschaltet sein soll aus der settings datei
+        Console.TreatControlCAsInput = True 'Deaktiviert standardmaessige Tastenkombinationen wie ctrl + c zum schliessen des Fensters 
+        Debug.WriteLine(AppDomain.CurrentDomain.BaseDirectory.ToString()) 'File Path zum root folder der Applikation
+        musicEnabled = LoadSettings(0) 'Laedt einstellungen ob hintergrund Musik ein oder ausgeschaltet sein soll aus der settings Datei
     End Sub
 
-    'FirbaseLoad() versucht eine verbindung mit der Firebase datenbank herzustellen und regsitriert den neuen Client
+    'FirbaseLoad() versucht eine Verbindung mit der Firebase datenbank herzustellen und registriert den neuen Client
     Public Sub FirebaseLoad()
         Try
             fClient = New FireSharp.FirebaseClient(fConfig)
@@ -101,7 +101,7 @@ Module Module1
         End Try
     End Sub
 
-    'FirebaseSend() Lädt Highscore Daten auf die Firebase Datenbank
+    'FirebaseSend() Laedt Highscore Daten auf die Firebase Datenbank
     Public Sub FirebaseSend(playerName As String, playerScore As Integer)
         Dim gameScore As New GameScore() With
             {
@@ -118,12 +118,12 @@ Module Module1
 
     End Sub
 
-    'FirebaseReceive() Returned alle gespeicherter Highscores von der Firebase Datenbank absteigend nach Höhe der Highscores sortiert
+    'FirebaseReceive() Returned alle gespeicherter Highscores von der Firebase Datenbank absteigend nach Hoehe der Highscores sortiert
     Public Function FirebaseReceive() As Dictionary(Of String, GameScore)
         Dim fReceiver As FirebaseResponse
         Dim gameScoreList As Dictionary(Of String, GameScore)
         Dim sortedGameScoreDictionary As New Dictionary(Of String, GameScore)
-        'Lädt die eine Liste der gespeicherten Highscores von der Datenbank
+        'Laedt eine Liste der gespeicherten Highscores von der Datenbank
         Try
             fReceiver = fClient.Get("GameScoreList/")
             gameScoreList = fReceiver.ResultAs(Of Dictionary(Of String, GameScore))
@@ -134,7 +134,7 @@ Module Module1
             sortedGameScoreDictionary.Add(key:="0", value:=New GameScore With {.roundId = "", .roundDate = "UNABLE TO CONNECT TO DATABASE", .playerName = "", .playerScore = ""})
             Return sortedGameScoreDictionary
         End Try
-        'Sortiert diese Liste absteigend nach größe der Highsores
+        'Sortiert diese Liste absteigend nach Groesse der Highsores
         Try
             Dim sortedGameScoreList = From pair In gameScoreList Order By Convert.ToInt64(pair.Value.playerScore) Descending
             sortedGameScoreDictionary = sortedGameScoreList.ToDictionary(Function(p) p.Key, Function(p) p.Value)
@@ -150,7 +150,7 @@ Module Module1
         Return sortedGameScoreDictionary
     End Function
 
-    'RoundStart() Setzt Variabeln zurück und startet die neue Runde
+    'RoundStart() Setzt Variablen zurueck und startet die neue Runde
     Public Sub RoundStart()
         Console.Clear()
         playerInRound = True
@@ -165,16 +165,16 @@ Module Module1
         gameFps = 0
         roundScore = 0
         If musicEnabled Then
-            menuloopSound.StopPlaying() 'Menümusik wird abgeschaltetet
+            menuloopSound.StopPlaying() 'Menuemusik wird abgeschaltet
             gamemusicSound.PlayLoop() 'InGame Music wird eingeschaltet
         End If
         ArraySetUp()
         AsyncLoopRound()
     End Sub
 
-    'SaveSettings() Speichert Settings in settinges.txt diese auch nach neustart des Spiels noch nutzen zu können
+    'SaveSettings() Speichert Settings in settings.txt diese auch nach neustart des Spiels noch nutzen zu koennen
     Public Sub SaveSettings(ByRef lineOfFile As Integer, Optional musicEnabled As Boolean = False, Optional openFirstTime As Boolean = False, Optional playerName As String = "")
-        If lineOfFile = 0 Then '0 ist Speicherort für musicEnabled
+        If lineOfFile = 0 Then '0 ist Speicherort fuer musicEnabled
             Try
                 Dim data As String() = {musicEnabled.ToString, LoadSettings(1), LoadSettings(2)}
                 File.WriteAllLines("settings.txt", data)
@@ -182,7 +182,7 @@ Module Module1
                 Debug.WriteLine("[LoadSettings] musicEnabled could not be written to settings.txt")
             End Try
         End If
-        If lineOfFile = 1 Then '1 ist Speicherort für openFirstTime
+        If lineOfFile = 1 Then '1 ist Speicherort fuer openFirstTime
             Try
                 Dim data As String() = {LoadSettings(0), openFirstTime.ToString(), LoadSettings(2)}
                 File.WriteAllLines("settings.txt", data)
@@ -190,7 +190,7 @@ Module Module1
                 Debug.WriteLine("[LoadSettings] openFirstTime could not be written to settings.txt")
             End Try
         End If
-        If lineOfFile = 2 Then '2 ist Speicherort für playerName
+        If lineOfFile = 2 Then '2 ist Speicherort fuer playerName
             Try
                 Dim data As String() = {LoadSettings(0), LoadSettings(1), playerName}
                 File.WriteAllLines("settings.txt", data)
@@ -200,9 +200,9 @@ Module Module1
         End If
     End Sub
 
-    'LoadSettings() Lädt gespeichert Settings aus dem settings.txt File
+    'LoadSettings() Laedt gespeichert Settings aus dem settings.txt File
     Public Function LoadSettings(ByRef lineOfFile As Integer)
-        If lineOfFile = 0 Then '0 ist Speicherort für musicEnabled
+        If lineOfFile = 0 Then '0 ist Speicherort fuer musicEnabled
             Try
                 Return Convert.ToBoolean(File.ReadAllLines("settings.txt")(0))
             Catch
@@ -211,7 +211,7 @@ Module Module1
                 Return False
             End Try
         End If
-        If lineOfFile = 1 Then '1 ist Speicherort für openFirstTime
+        If lineOfFile = 1 Then '1 ist Speicherort fuer openFirstTime
             Try
                 Return Convert.ToBoolean(File.ReadAllLines("settings.txt")(1))
             Catch
@@ -220,7 +220,7 @@ Module Module1
                 Return False
             End Try
         End If
-        If lineOfFile = 2 Then '2 ist Speicherort für playerName
+        If lineOfFile = 2 Then '2 ist Speicherort fuer playerName
             Try
                 Return File.ReadAllLines("settings.txt")(2)
             Catch
@@ -238,14 +238,14 @@ Module Module1
             WriteAt("FPS:" & gameFps & "   ", 1, 2) 'nach einer Sekunde Ausgabe der FPS-Variable auf dem Bildschirm
             gameFps = 0
         End If
-        gameFps += 1 'erhöhe die FPS Variable jeden gerenderten Frame um 1
+        gameFps += 1 'erhoehe die FPS Variable jeden gerenderten Frame um 1
         gameTimerCache = gameTimer
         WriteAt("Score:" & roundScore & "   ", 1, 0)
     End Sub
 
-    'DrawPlayer() Speichert die unterschiedlichen Animationsstadien der Spielfiegur und schreibt diese bei abfrage auf das Consolenfenster
+    'DrawPlayer() Speichert die unterschiedlichen Animationsstadien der Spielfigur und schreibt diese bei abfrage auf das Konsolenfenster
     Public Sub DrawPlayer(playerState As Integer, playerAnchorX As Integer, playerAnchorY As Integer)
-        Select Case playerState 'playerState: welcher Frame der Figuranimation soll ausgegeben werden
+        Select Case playerState 'playerState: welcher Frame der Animation soll ausgegeben werden
             Case 0
                 WriteAt(" ", playerAnchorX + 1, playerAnchorY + 1)
                 WriteAt(" ", playerAnchorX + 2, playerAnchorY + 1)
@@ -609,18 +609,15 @@ Module Module1
         End Select
     End Sub
 
-    'Sprung der Spielfigur über die Hindernisse
-
-
     'PlayerManager() Ausgabe der animierten Spielfigur an der entsprechenden Position am Bildschirm
     Public Sub PlayerManager()
-        If playerJumpHeight <> playerJumpHeightCache Then DrawPlayer(0, constPlayerXPosition, (constConsoleHeight - 7) - playerJumpHeightCache) 'BugFix: Löscht doppelte Zeichen die entstehen wenn die Spielfigur sich schneller bewegt als das Konsolenfenster refreshed sobalt sich die Figur an einer neuen Position befindent
-        DrawPlayer(0, constPlayerXPosition, (constConsoleHeight - 7) - 6) 'BugFix: Löscht doppelte Zeichen die entstehen wenn die Spielfigur sich schneller bewegt als das Konsolenfenster refreshed - Funktioniert also besser so lassen
+        If playerJumpHeight <> playerJumpHeightCache Then DrawPlayer(0, constPlayerXPosition, (constConsoleHeight - 7) - playerJumpHeightCache) 'BugFix: Loescht doppelte Zeichen die entstehen wenn die Spielfigur sich schneller bewegt als das Konsolenfenster refreshed sobald sich die Figur an einer neuen Position befindet
+        DrawPlayer(0, constPlayerXPosition, (constConsoleHeight - 7) - 6) 'BugFix: Loescht doppelte Zeichen die entstehen wenn die Spielfigur sich schneller bewegt als das Konsolenfenster refreshed - Funktioniert also besser so lassen
         DrawPlayer(playerAnimationState, constPlayerXPosition, (constConsoleHeight - 7) - playerJumpHeight)
         playerJumpHeightCache = playerJumpHeight
     End Sub
 
-    'DrawArray() Speichert die Bausteine für Hindernisse, den Weg, und den Himmel und schreibt diese bei abfrage auf das Consolenfenster
+    'DrawArray() Speichert die Bausteine fuer Hindernisse, den Weg, und den Himmel und schreibt diese bei abfrage auf das Konsolenfenster
     Public Sub DrawArray(groundState As Integer, groundAnchorX As Integer, groundAnchorY As Integer)
         Select Case groundState
             Case 0
@@ -663,14 +660,14 @@ Module Module1
         End Select
     End Sub
 
-    'ArraySetUp() befüllt die Array Listen für Boden und Himmel, damit auch bei Spielstart schohn was zu sehen ist
+    'ArraySetUp() Befuellt die Array Listen fuer Boden und Himmel, damit auch bei Spielstart schon was zu sehen ist
     Public Sub ArraySetUp()
         groundTiles.Clear()
         For i = 0 To constConsoleWidth - 1
-            groundTiles.Add(New Tile With {.tileType = 0}) 'Bestückung mit Bodenstücken des Standarttyps (kein Hindernis)
+            groundTiles.Add(New Tile With {.tileType = 0}) 'Bestueckung mit Bodenstuecken des Standarttyps (kein Hindernis)
         Next
         skyTiles1.Clear()
-        'Verteilt auf der oberen Wolkenebene zufällig Wolken
+        'Verteilt auf der oberen Wolkenebene zufaellig Wolken
         Dim spawnRandom As Integer = 0
         For i = 0 To constConsoleWidth - 1
             If spawnRandom > CInt(Math.Floor((55 - 45 + 1) * Rnd())) + 45 Then
@@ -683,7 +680,7 @@ Module Module1
             End If
             spawnRandom += 1
         Next
-        'Verteilt auf der unteren Wolkenebene zufällig Wolken
+        'Verteilt auf der unteren Wolkenebene zufaellig Wolken
         spawnRandom = 0
         skyTiles2.Clear()
         For i = 0 To constConsoleWidth - 1
@@ -699,7 +696,7 @@ Module Module1
         Next
     End Sub
 
-    'ArrayManager() Wird im Render zyclus abgerufen und zeichnet alle Boden und Himmelstücke 
+    'ArrayManager() Wird im Render Zyklus abgerufen und zeichnet alle Boden und Himmelstuecke 
     Public Sub ArrayManager()
         For index As Integer = groundTiles.Count - 1 To 0 Step -1
             DrawArray($"{groundTiles(index).tileType} ", index, constConsoleHeight - 1)
@@ -712,7 +709,7 @@ Module Module1
         Next
     End Sub
 
-    'AsyncLoopRound() Startet Parallele Prozesse die wärend der Runde laufen
+    'AsyncLoopRound() Startet Parallele Prozesse die waehrend der Runde laufen
     Public Function AsyncLoopRound() As Task
         Dim taskA = Task.Run(AddressOf RenderLoop)
         Dim taskB = Task.Run(AddressOf Timer)
@@ -720,10 +717,10 @@ Module Module1
         Dim taskD = Task.Run(AddressOf GroundAnimator)
         Dim taskE = Task.Run(AddressOf CollisionManager)
         Dim taskF = Task.Run(AddressOf SkyAnimator)
-        Task.WaitAll(taskA) 'Verhindert das die Base Task weiter läuft
+        Task.WaitAll(taskA) 'Verhindert das die Base Task weiter laeuft
     End Function
 
-    'RenderLoop() Von hier aus werden wärend einer Runde alle Zeichnenden Funktionen gesteuert
+    'RenderLoop() Von hier aus werden waehrend einer Runde alle Zeichnenden Funktionen gesteuert
     Public Sub RenderLoop()
         While playerInRound
             DrawStats()
@@ -733,7 +730,7 @@ Module Module1
         End While
     End Sub
 
-    'Timer() Ein Timer der ab Rundenstart die Sekunden zählt
+    'Timer() Ein Timer der ab Rundenstart die Sekunden zaehlt
     Public Sub Timer()
         While playerInRound
             gameTimer += 1
@@ -741,8 +738,8 @@ Module Module1
         End While
     End Sub
 
-    'CollisionManager() Überprüft ob es eine koolison Zwischen Spielfigur und Hindernis gibt
-    'Wenn an Position des Players ein Hindernis ist, wird geprüft ob Spielfigur am Boden ist. Wenn ja, Game Over; Wenn nein, Score +1.
+    'CollisionManager() Ueberprueft ob es eine Kollision zwischen Spielfigur und Hindernis gibt
+    'Wenn an Position des Players ein Hindernis ist, wird geprueft ob Spielfigur am Boden ist. Wenn ja, Game Over; Wenn nein, Score +1.
     Public Sub CollisionManager()
         Dim overObstacle As Boolean = False
         While playerInRound
@@ -755,9 +752,9 @@ Module Module1
                 overObstacle = True
             End If
             If groundTiles(6).tileType = 0 And overObstacle = True Then
-                overObstacle = False 'overObstacle Wird verwendet damit es erst einen Punkt gibt wenn das Hinderniss vollständig überwunden ist
+                overObstacle = False 'overObstacle Wird verwendet damit es erst einen Punkt gibt wenn das Hindernis vollstaendig Ueberwunden ist
                 roundScore += 1
-                If isDivisible(roundScore, 10) Then 'Alle 10 überwundenen Hindernisse wird ein anderer sound gespielt für ein bisschen abwechslung
+                If isDivisible(roundScore, 10) Then 'Alle 10 Ueberwundenen Hindernisse wird ein anderer sound gespielt fuer ein bisschen Abwechslung
                     playBigScoreSound = True
                     playScoreSound = True
                 Else
@@ -768,21 +765,21 @@ Module Module1
         End While
     End Sub
 
-    'PlayerAnimator() Animiert den Sprung der Spielfigur und Cyceld durch die Laufanimation
+    'PlayerAnimator() Animiert den Sprung der Spielfigur und cycled durch die Laufanimation
     Public Sub PlayerAnimator()
         While playerInRound
-            If playerJumpHeight < 0.1 And playerJump Then 'wenn sich der Spieler in Bodennähe befindet und ein Sprung initiiert wurde, dann startet Sprunganimation
+            If playerJumpHeight < 0.1 And playerJump Then 'wenn sich der Spieler in Bodennaehe befindet und ein Sprung initiiert wurde, dann startet Sprunganimation
                 playJumpSound = True 'Startet den Sprung Sound
                 animateJump = True 'Spieler befindet sich im Sprung: animateJump = True
                 playerJump = False
             End If
-            If animateJump Then 'bewegt Spielfigur nach oben bis maximale Spielersprunghöhe erreicht ist (springen)
+            If animateJump Then 'bewegt Spielfigur nach oben bis maximale Sprunghoehe erreicht ist (springen)
                 If playerJumpHeight < 6 Then playerJumpHeight += 2
             Else
-                If playerJumpHeight > 0 Then playerJumpHeight -= 1 'Animation der Spielfigur in die Ausgangshöhe (landen)
+                If playerJumpHeight > 0 Then playerJumpHeight -= 1 'Animation der Spielfigur in die Ausgangsposition (landen)
             End If
-            If playerJumpHeight > 5 Then animateJump = False '5 ist hier die Maximale sprunghöhe, ist diese erreicht wird die Spielfigur nicht weiter nach oben bewegt und kehrt in die ausgangsposition zurück
-            If playerAnimationState = 7 Then 'Cyceld durch die Laufsequenz
+            If playerJumpHeight > 5 Then animateJump = False '5 ist hier die Maximale Sprunghoehe, ist diese erreicht wird die Spielfigur nicht weiter nach oben bewegt und kehrt in die ausgangsposition zurueck
+            If playerAnimationState = 7 Then 'Cycled durch die Laufsequenz
                 playerAnimationState = 1
             Else
                 playerAnimationState += 1
@@ -791,17 +788,17 @@ Module Module1
         End While
     End Sub
 
-    'GroundAnimator() Bewegt die Hindernisse von Rechts nach Links und Spawned zufällig neue
+    'GroundAnimator() Bewegt die Hindernisse von Rechts nach Links und Spawned zufaellig neue
     Public Sub GroundAnimator()
         Dim spawnTimer As Integer 'Verstrichene Zeit seid letztem Hindernis Spawn
         While playerInRound
-            groundTiles.RemoveAt(0) 'entfernt das links außen positionierte Bodenstück der Bodenstückliste
-            If spawnTimer > 150 Then 'sofern Zeit zwischen Hinderissen vestrichen ist, füge neues Hindernisstück zur Bodenstückliste hinzu
-                Dim tyleTypeRnd As Integer = CInt(Math.Floor((4 - 1 + 1) * Rnd())) + 1 'Wählt einen Zufälligen Bodenstück Typ aus
+            groundTiles.RemoveAt(0) 'Entfernt das links aussen positionierte Bodenstueck der Bodenstueckliste
+            If spawnTimer > 150 Then 'Sofern Zeit zwischen Hindernissen verstrichen ist, fuege neues Hindernisstueck zur Bodenstueckliste hinzu
+                Dim tyleTypeRnd As Integer = CInt(Math.Floor((4 - 1 + 1) * Rnd())) + 1 'Waehlt einen Zufaelligen Bodenstueck Typ aus
                 If tyleTypeRnd = 1 Or tyleTypeRnd = 2 Then
-                    groundTiles.Add(New Tile With {.tileType = tyleTypeRnd}) 'Fügt rechts außen ein Bodenstück aus der Bodenstcükliste hinzu
+                    groundTiles.Add(New Tile With {.tileType = tyleTypeRnd}) 'Fuegt rechts aussen ein Bodenstueck aus der Bodenstueckliste hinzu
                 End If
-                If tyleTypeRnd = 3 Or tyleTypeRnd = 4 Then 'Enfernt weitere Bodenstücke damit auch breitere Bodenstücke hinzugefügt werden können ohnen das es einen Overflow error gibt
+                If tyleTypeRnd = 3 Or tyleTypeRnd = 4 Then 'Entfernt weitere Bodenstueck damit auch breitere Bodenstueck hinzugefuegt werden koennen ohne das es einen Overflow error gibt
                     groundTiles.RemoveAt(constConsoleWidth - 2)
                     groundTiles.RemoveAt(constConsoleWidth - 3)
                     groundTiles.RemoveAt(constConsoleWidth - 4)
@@ -811,16 +808,16 @@ Module Module1
                     groundTiles.Add(New Tile With {.tileType = 0})
                 End If
                 spawnTimer = 0
-            Else 'Für den Fall das kein neues Hinderniss gespawnd ist, wird ein Bodenstück ohne hinderniss Hinzugefügt und alle andern rutschen ein stück auf
+            Else 'Fuer den Fall das kein neues Hindernis gespawned ist, wird ein Bodenstueck ohne Hindernis hinzugefuegt und alle andern rutschen ein Stueck auf
                 groundTiles.Add(New Tile With {.tileType = 0})
             End If
-            Randomize() 'variiere Zeit zwischen Hindernisspawns; Zeit verringert sich über die Spielzeit
+            Randomize() 'variiere Zeit zwischen Hindernisspawns; Zeit verringert sich ueber die Spielzeit
             spawnTimer = (spawnTimer + CInt(Math.Floor((constRandomUpperBound - constRandomLowerBound + 1) * Rnd())) + constRandomLowerBound) + (roundScore / 20)
             Threading.Thread.Sleep(20)
         End While
     End Sub
 
-    'SkyAnimator() Eigentlich das gleiche wie der GroundAnimator nur für den Himmel
+    'SkyAnimator() Eigentlich das gleiche wie der GroundAnimator nur fuer den Himmel
     Public Sub SkyAnimator()
         Dim spawnTimerSky
         While playerInRound
@@ -860,7 +857,7 @@ Module Module1
         End While
     End Sub
 
-    'AsyncLoopGame() Startet Parallele Prozesse die wärend der ganzen Zeit laufen
+    'AsyncLoopGame() Startet Parallele Prozesse die waehrend der ganzen Zeit laufen
     Public Function AsyncLoopGame() As Task
         Dim task1 = Task.Run(AddressOf KeyImput)
         Dim task2 = Task.Run(AddressOf SoundManager)
@@ -868,7 +865,7 @@ Module Module1
 
     'SoundManager() Spielt Sounds parallel ab
     Public Sub SoundManager()
-        If initiateSounds Then 'Lädt Sounds bei start
+        If initiateSounds Then 'Laedt Sounds bei start
             Snds.AddSound("Jump", "jump.wav")
             Snds.AddSound("Death", "death.wav")
             Snds.AddSound("Score", "score.wav")
@@ -896,36 +893,36 @@ Module Module1
         End While
     End Sub
 
-    'KeyImput() Prüft ob der Spieler eine Taste gedrückt hat und reagiert gegebenenfalls
+    'KeyImput() Prueft ob der Spieler eine Taste gedrueckt hat und reagiert gegebenenfalls
     Public Sub KeyImput()
         Dim consoleKey As ConsoleKeyInfo
         Dim fifteenFix As Boolean = False
         While True
             consoleKey = Console.ReadKey(True)
             If playerInRound Then 'Spieler befindet sich in einer Runde
-                If (consoleKey.Key = 32) <> 0 Then playerJump = True 'Key32=Lertaste; starte sprung animation
+                If (consoleKey.Key = 32) <> 0 Then playerJump = True 'Key32=Leertaste; starte sprung animation
                 If (consoleKey.Modifiers And ConsoleModifiers.Control And consoleKey.Key = 67) <> 0 Then playerInRound = False 'Abfrage bei Tastenkombination "Strg C" beenden der Runde - um Entwicklung zu vereinfachen
-            Else 'Spieler bedindet sich in einem Menü
-                If (consoleKey.Key = 32) <> 0 And keyInputDelay Then menuConfirm = True 'Key32=Lertaste; Auswahl bestätigen
-                If (consoleKey.Key = 13) <> 0 Then menuConfirm = True 'Key13=Enter; Auswahl bestätigen
-                If (consoleKey.Key = 38) <> 0 Then If selectedMenuOption > 0 Then selectedMenuOption -= 1 'Key38=Pfeiltaste Hoch; Auswahl nach oben sofern noch nicht der oberste menüpunkt erreicht ist
-                If (consoleKey.Key = 40) <> 0 Then If selectedMenuOption < 4 Then selectedMenuOption += 1 'Key40=Pfeiltaste Runter; Auswahl nach unten sofern noch nicht der letzte menüpunkt erreicht ist
+            Else 'Spieler befindet sich in einem Menue
+                If (consoleKey.Key = 32) <> 0 And keyInputDelay Then menuConfirm = True 'Key32=Leertaste; Auswahl bestaetigen
+                If (consoleKey.Key = 13) <> 0 Then menuConfirm = True 'Key13=Enter; Auswahl bestaetigen
+                If (consoleKey.Key = 38) <> 0 Then If selectedMenuOption > 0 Then selectedMenuOption -= 1 'Key38=Pfeiltaste Hoch; Auswahl nach oben sofern noch nicht der oberste Menuepunkt erreicht ist
+                If (consoleKey.Key = 40) <> 0 Then If selectedMenuOption < 4 Then selectedMenuOption += 1 'Key40=Pfeiltaste Runter; Auswahl nach unten sofern noch nicht der letzte Menuepunkt erreicht ist
 
 
-                If changeNameMenuOpen And selectedMenuOption <> 0 Then 'Spieler befindet sich im SubMenuChangeName Menü und hat das Namensfeld ausgewählt
-                    If consoleKey.Key >= 48 And consoleKey.Key <= 57 Then 'Wurde eine Zahl zwischen 0 und 9 gedrückt 
+                If changeNameMenuOpen And selectedMenuOption <> 0 Then 'Spieler befindet sich im SubMenuChangeName Menue und hat das Namensfeld ausgewaehlt
+                    If consoleKey.Key >= 48 And consoleKey.Key <= 57 Then 'Wurde eine Zahl zwischen 0 und 9 gedrueckt 
                         playerNameCharacters(nameFieldCursorLocation) = consoleKey.Key.ToString()(1) 'Die Zahlen Tasten beginnen alle mit D, deswegen erst das zweite Zeichen nutzen
-                        If nameFieldCursorLocation < 15 Then nameFieldCursorLocation += 1 'Nach eingabe eines neuen Buchstabens kursor um eins nach rechts verrücken
+                        If nameFieldCursorLocation < 15 Then nameFieldCursorLocation += 1 'Nach eingabe eines neuen Buchstabens Cursor um eins nach rechts verruecken
                     End If
-                    If consoleKey.Key >= 96 And consoleKey.Key <= 105 Then 'Wurde eine Zahl zwischen 0 und 9 auf dem NumPad gedrückt
+                    If consoleKey.Key >= 96 And consoleKey.Key <= 105 Then 'Wurde eine Zahl zwischen 0 und 9 auf dem NumPad gedrueckt
                         playerNameCharacters(nameFieldCursorLocation) = consoleKey.Key.ToString()(6) 'Die NumPad Tasten beginnen alle mit NumPad, deswegen erst das siebte Zeichen nutzen
                         If nameFieldCursorLocation < 15 Then nameFieldCursorLocation += 1
                     End If
-                    If consoleKey.Key = 32 Then 'Wurde die Leertaste im Namensfeld gedrückt, ersetze das Leerzeichen mit -
+                    If consoleKey.Key = 32 Then 'Wurde die Leertaste im Namensfeld gedrueckt, ersetze das Leerzeichen mit -
                         playerNameCharacters(nameFieldCursorLocation) = "-"
                         If nameFieldCursorLocation < 15 Then nameFieldCursorLocation += 1
                     End If
-                    If consoleKey.Key >= 65 And consoleKey.Key <= 90 Then 'Es wurde eine Buchstabentaste gedrückt
+                    If consoleKey.Key >= 65 And consoleKey.Key <= 90 Then 'Es wurde eine Buchstabentaste gedrueckt
                         playerNameCharacters(nameFieldCursorLocation) = consoleKey.Key.ToString()(0)
                         If nameFieldCursorLocation < 15 Then nameFieldCursorLocation += 1
                     End If
@@ -935,7 +932,7 @@ Module Module1
                     If (consoleKey.Key = 37) <> 0 Then 'Key37=Pfeiltaste Links; Verschiebt den Cursor um eine Einheit nach Links
                         If nameFieldCursorLocation > 0 Then nameFieldCursorLocation -= 1
                     End If
-                    If (consoleKey.Key = 8) <> 0 Then 'Key37=Backspace; Löscht eingetragenes Zeichen und Verschiebt den Cursor um eine Einheit nach Links
+                    If (consoleKey.Key = 8) <> 0 Then 'Key37=Backspace; Loescht eingetragenes Zeichen und Verschiebt den Cursor um eine Einheit nach Links
                         If nameFieldCursorLocation > 0 Then
                             If nameFieldCursorLocation < 15 Or fifteenFix Then
                                 playerNameCharacters(nameFieldCursorLocation - 1) = "_"
@@ -943,15 +940,15 @@ Module Module1
                                 fifteenFix = False
                             Else
                                 playerNameCharacters(nameFieldCursorLocation) = "_"
-                                fifteenFix = True 'Ist der Cursor ganz rechts müsste er eigentlich in das Feld 16, das gibt es aber nicht deswegen wird dieser Zustand in einer Variable gespeichert
+                                fifteenFix = True 'Ist der Cursor ganz rechts muesste er eigentlich in das Feld 16, das gibt es aber nicht deswegen wird dieser Zustand in einer Variable gespeichert
                             End If
                         End If
                     End If
-                    If (consoleKey.Key = 13) <> 0 Then 'Key13=Enter; Da es keine absätze gibt kann die Entertaste zusätzlich zu den Pfeiltasten genutzt werden um die Eingabe zu beenden
+                    If (consoleKey.Key = 13) <> 0 Then 'Key13=Enter; Da es keine Absaetze gibt kann die Entertaste zusaetzlich zu den Pfeiltasten genutzt werden um die Eingabe zu beenden
                         selectedMenuOption = 0
                         menuConfirm = False
                     End If
-                    If (consoleKey.Key = 46) <> 0 Then 'Key13=Entfernen; Löscht gegebenenfalls das Zeichen im ausgewählten Feld
+                    If (consoleKey.Key = 46) <> 0 Then 'Key13=Entfernen; Loescht gegebenenfalls das Zeichen im ausgewaehlten Feld
                         playerNameCharacters(nameFieldCursorLocation) = "_"
                     End If
                 End If
@@ -959,26 +956,26 @@ Module Module1
         End While
     End Sub
 
-    'GameOver() Wird aufgerufen wenn es Kolision mit Hinderniss gab und Runde zu Ende ist
+    'GameOver() Wird aufgerufen wenn es Kollision mit Hindernis gab und Runde zu Ende ist
     Public Sub GameOver()
         keyInputDelay = False
-        If musicEnabled Then 'Wenn Musik akteviert ist: Beendet die InGame Musik und Startet die Menümusik 
+        If musicEnabled Then 'Wenn Musik aktiviert ist: Beendet die InGame Musik und Startet die Menuemusik 
             gamemusicSound.StopPlaying()
             menuloopSound.PlayLoop()
         End If
 
-        For i = 0 To 5 'Läst Hinderniss mit dem die Spielfigur kolisiert ist Rot flackern
-            DrawArray($"{groundTiles(6).tileType} ", 6, constConsoleHeight - 1) 'nicht denken, maaalen
+        For i = 0 To 5 'Laesst Hindernis mit dem die Spielfigur kollidiert ist Rot flackern
+            DrawArray($"{groundTiles(6).tileType} ", 6, constConsoleHeight - 1)
             Threading.Thread.Sleep(20)
             Console.ForegroundColor = ConsoleColor.DarkRed
-            DrawArray($"{groundTiles(6).tileType} ", 6, constConsoleHeight - 1) 'nicht denken, maaalen
+            DrawArray($"{groundTiles(6).tileType} ", 6, constConsoleHeight - 1)
             Console.ForegroundColor = ConsoleColor.White
             Threading.Thread.Sleep(30)
         Next
 
         FirebaseSend(LoadSettings(2), roundScore) 'Speichern des Highscores
 
-        'Löscht die Zeichen Hinter dem Menü und GameOver Schriftzug damit es keine Überlappung mit Wolken gibt
+        'Loescht die Zeichen Hinter dem Menue und GameOver Schriftzug damit es keine Ueberlappung mit Wolken gibt
         WriteAt("                                          ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
         WriteAt("                                          ", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
         WriteAt("                                          ", x:=0, y:=-6, CenterHorizontally:=True, CenterVertically:=True)
@@ -990,31 +987,31 @@ Module Module1
         WriteAt("                                     ", x:=0, y:=0, CenterHorizontally:=True, CenterVertically:=True)
     End Sub
 
-    'MenuLoop() Das Spielmenü bzw. angepasste Spielmenü für den GameOver Fall
+    'MenuLoop() Das Spielmenue bzw. angepasste Spielmenue fuer den GameOver Fall
     Public Sub MenuLoop()
-        If musicEnabled Then menuloopSound.PlayLoop() 'Wenn Musik akteviert ist startet Hintergrundmusik des Menüs
+        If musicEnabled Then menuloopSound.PlayLoop() 'Wenn Musik aktiviert ist startet Hintergrundmusik des Menues
         While True
             If menuConfirm Then
                 menuConfirm = False
-                If selectedMenuOption = 0 Then 'Menüpunkt Play bzw. Play Again wurde bestätigt
+                If selectedMenuOption = 0 Then 'Menuepunkt Play bzw. Play Again wurde bestaetigt
                     RoundStart()
                     GameOver()
                 End If
-                If selectedMenuOption = 1 Then 'Menüpunkt HighScores wurde bestätigt
+                If selectedMenuOption = 1 Then 'Menuepunkt HighScores wurde bestaetigt
                     SubMenuHighScores()
                 End If
-                If selectedMenuOption = 2 Then 'Menüpunkt SubMenuChangeName wurde bestätigt
+                If selectedMenuOption = 2 Then 'Menuepunkt SubMenuChangeName wurde bestaetigt
                     SubMenuChangeName()
                 End If
-                If selectedMenuOption = 3 Then 'Menüpunkt Music Enabled bzw. Music Disabled wurde bestätigt
+                If selectedMenuOption = 3 Then 'Menuepunkt Music Enabled bzw. Music Disabled wurde bestaetigt
                     ToggleAudio()
                 End If
-                If selectedMenuOption = 4 Then 'Menüpunkt Credits wurde bestätigt
+                If selectedMenuOption = 4 Then 'Menuepunkt Credits wurde bestaetigt
                     SubMenuCredits()
                 End If
             End If
 
-            If gameOverBoolean Then 'Nach Coolision mit Hinderniss zeige GameOver anstadt Runner96 an
+            If gameOverBoolean Then 'Nach Kollision mit Hindernis zeige GameOver anstatt Runner96 an
                 Console.ForegroundColor = ConsoleColor.DarkRed
                 WriteAt("  _____                 ____              ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
                 WriteAt(" / ___/__ ___ _  ___   / __ \_  _____ ____", x:=0, y:=-7, CenterHorizontally:=True, CenterVertically:=True)
@@ -1032,7 +1029,7 @@ Module Module1
                 Console.ForegroundColor = ConsoleColor.Blue
                 WriteAt("> ", (constConsoleWidth / 2) - 7, (constConsoleHeight / 2) - 2)
                 If gameOverBoolean Then
-                    WriteAt("Play Again", (constConsoleWidth / 2) - 5, (constConsoleHeight / 2) - 2) 'Nach Coolision mit Hinderniss zeige Play Again anstadt Play an
+                    WriteAt("Play Again", (constConsoleWidth / 2) - 5, (constConsoleHeight / 2) - 2) 'Nach Kollision mit Hindernis zeige Play Again anstatt Play an
                 Else
                     WriteAt("Play", (constConsoleWidth / 2) - 5, (constConsoleHeight / 2) - 2)
                 End If
@@ -1090,14 +1087,14 @@ Module Module1
                 WriteAt("Credits", (constConsoleWidth / 2) - 5, (constConsoleHeight / 2) + 3)
             End If
 
-            If keyInputDelay = False Then 'Fügt ein kurzes Delay hinzu bevor die nächste Runde gestartet werden kann
+            If keyInputDelay = False Then 'Fuegt ein kurzes Delay hinzu bevor die naechste Runde gestartet werden kann
                 Threading.Thread.Sleep(300)
                 keyInputDelay = True
             End If
         End While
     End Sub
 
-    'SubMenuHighScores() Untermenü mit einer Liste der Highscores
+    'SubMenuHighScores() Untermenue mit einer Liste der Highscores
     Public Sub SubMenuHighScores()
         Console.Clear()
         WriteAt("   __ ___      __     ____                   ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
@@ -1121,13 +1118,13 @@ Module Module1
         Console.Clear()
     End Sub
 
-    'SubMenuChangeName() Ermöglicht das ändern des Spielernamens bei auswahl des Menüpunkts bzw. das setzten eines Spielnahmens beim ersten Start
+    'SubMenuChangeName() Ermoeglicht das Aendern des Spielernamen bei Auswahl des Menuepunkts bzw. das setzten eines Spielernamen beim ersten Start
     Public Sub SubMenuChangeName()
         Dim playerName As String
         playerNameCharacters.Clear()
         playerName = LoadSettings(2)
         If openFirstTime Then playerName = "" 'Damit beim ersten Start kein Spielernamen angezeigt wird
-        For index As Integer = 0 To 15 'Fügt die Zeichen des playerNames der Liste hinzu und füllt verbleibene Stellen auf bis 15 erreicht sind
+        For index As Integer = 0 To 15 'Fuegt die Zeichen des playerNames der Liste hinzu und fuellt verbleibende Stellen auf bis 15 erreicht sind
             Try
                 playerNameCharacters.Add(playerName(index))
             Catch
@@ -1135,7 +1132,7 @@ Module Module1
             End Try
         Next
         nameFieldCursorLocation = 0
-        selectedMenuOption = 1 'Bei öffnen des Menüs auswahl des Eingabefelds
+        selectedMenuOption = 1 'Bei Oeffnen des Menues Auswahl des Eingabefelds
         If openFirstTime = False Then Console.Clear()
         changeNameMenuOpen = True
         If openFirstTime = False Then 'Beim ersten Spielstart soll Change Name nicht angezeigt werden
@@ -1147,7 +1144,7 @@ Module Module1
         End If
         WriteAt("Enter player name:", (constConsoleWidth / 2) - 20, (constConsoleHeight / 2))
         While True
-            If selectedMenuOption = 0 Then 'Beim ersten Spielstart soll anstadt von Back Continue angezeigt werden
+            If selectedMenuOption = 0 Then 'Beim ersten Spielstart soll anstatt von Back, Continue angezeigt werden
                 Console.ForegroundColor = ConsoleColor.Blue
                 If openFirstTime Then
                     WriteAt("> Continue ", 3, 1)
@@ -1164,11 +1161,11 @@ Module Module1
                 End If
                 menuConfirm = False
             End If
-            If selectedMenuOption > 1 Then 'Letzte position der Auswahlmöglichkeiten im ChangeName Menü schon bei 1
+            If selectedMenuOption > 1 Then 'Letzte position der Auswahlmoeglichkeiten im ChangeName Menue schon bei 1
                 selectedMenuOption = 1
             End If
 
-            For index As Integer = 0 To 15 'Schreibe die playerNameCharacters an der jewailging position auf die Console und setzte den Cursor an die richtige Stelle
+            For index As Integer = 0 To 15 'Schreibe die playerNameCharacters an der jeweiligen position auf die Konsole und setzte den Cursor an die richtige Stelle
                 If nameFieldCursorLocation = index And selectedMenuOption = 1 Then
                     Console.ForegroundColor = ConsoleColor.Blue
                     WriteAt(playerNameCharacters(index), (constConsoleWidth / 2) + index, (constConsoleHeight / 2))
@@ -1190,7 +1187,7 @@ Module Module1
             End If
         Next
 
-        Dim playerNameCashe As String = Join(playerNameCharactersCashe.Where(Function(s) Not String.IsNullOrEmpty(s)).ToArray(), "") 'Füge die einzelnen Cahractere der Liste zum Playernamen zusammen
+        Dim playerNameCashe As String = Join(playerNameCharactersCashe.Where(Function(s) Not String.IsNullOrEmpty(s)).ToArray(), "") 'Fuege die einzelnen Character der Liste zum PlayerNamen zusammen
         If playerNameCashe <> "" Then
             playerName = playerNameCashe
             SaveSettings(2, playerName:=playerName) 'Speichern des neuen Player Namens
@@ -1203,7 +1200,7 @@ Module Module1
         Console.Clear()
     End Sub
 
-    'SubMenuCredits() Untermenü mit den Namen der beteidigten Personen
+    'SubMenuCredits() Untermenue mit den Namen der beteiligten Personen
     Public Sub SubMenuCredits()
         Console.Clear()
         WriteAt("  _____           ___ __    ", x:=0, y:=-8, CenterHorizontally:=True, CenterVertically:=True)
@@ -1224,7 +1221,7 @@ Module Module1
         Console.Clear()
     End Sub
 
-    'ToggleAudio() Wird bei auswahl des Menüpunktes Enable/Disable Audio aufgerufen und wechselt zwischen den beiden
+    'ToggleAudio() Wird bei Auswahl des Menuepunktes Enable/Disable Audio aufgerufen und wechselt zwischen den beiden
     Public Sub ToggleAudio()
         If musicEnabled Then
             musicEnabled = False
@@ -1237,7 +1234,7 @@ Module Module1
         End If
     End Sub
 
-    'Introduction() Wird bei Spielstart ausgeführt und zeigt beim ersten Spielstart das Tutorial an
+    'Introduction() Wird bei Spielstart ausgefuehrt und zeigt beim ersten Spielstart das Tutorial an
     Public Sub Introduction()
         Console.Clear()
         introSound.PlayFromStart()
@@ -1298,15 +1295,15 @@ Module Module1
         Console.ForegroundColor = ConsoleColor.Blue
         WriteAt("Press [Space] to continue", 3, 1)
         Console.ForegroundColor = ConsoleColor.White
-        WriteAt("Willkommen bei Runner 96, dem ultimativen Test für", x:=35, y:=-6, CenterVertically:=True)
+        WriteAt("Willkommen bei Runner 96, dem ultimativen Test fuer", x:=35, y:=-6, CenterVertically:=True)
         WriteAt("Geschwindigkeit, Reflexe und Ausdauer!", x:=35, y:=-5, CenterVertically:=True)
-        WriteAt("Überwinde unzählige Hindernisse und laufe so weit wie", x:=35, y:=-3, CenterVertically:=True)
-        WriteAt("möglich, während du dich in einer tückischen Welt voller ", x:=35, y:=-2, CenterVertically:=True)
+        WriteAt("Ueberwinde unzaehlige Hindernisse und laufe so weit wie", x:=35, y:=-3, CenterVertically:=True)
+        WriteAt("moeglich, waehrend du dich in einer tueckischen Welt voller ", x:=35, y:=-2, CenterVertically:=True)
         WriteAt("Barrieren und Hindernissen bewegst. ", x:=35, y:=-1, CenterVertically:=True)
-        WriteAt("Präzision und Timing sind der Schlüssel, denn jede ", x:=35, y:=1, CenterVertically:=True)
-        WriteAt("Berührung eines Hindernisses bedeutet das Ende. ", x:=35, y:=2, CenterVertically:=True)
+        WriteAt("Praezision und Timing sind der Schluessel, denn jede ", x:=35, y:=1, CenterVertically:=True)
+        WriteAt("Beruehrung eines Hindernisses bedeutet das Ende. ", x:=35, y:=2, CenterVertically:=True)
         WriteAt("Tritt gegen dich selbst an oder fordere Freunde heraus, ", x:=35, y:=4, CenterVertically:=True)
-        WriteAt("um deinen Highscore zu übertreffen. ", x:=35, y:=5, CenterVertically:=True)
+        WriteAt("um deinen Highscore zu uebertreffen. ", x:=35, y:=5, CenterVertically:=True)
         While menuConfirm = False
         End While
         menuConfirm = False
@@ -1316,25 +1313,25 @@ Module Module1
         Console.ForegroundColor = ConsoleColor.White
         WriteAt("Bevor es losgeht noch ein paar kurze Tipps wie du dich ", x:=35, y:=-6, CenterVertically:=True)
         WriteAt("durch die Welt von Runner 96 bewegst:", x:=35, y:=-5, CenterVertically:=True)
-        WriteAt("- Durch drücken der Leertaste kannst du während", x:=35, y:=-3, CenterVertically:=True)
+        WriteAt("- Durch druecken der Leertaste kannst du waehrend", x:=35, y:=-3, CenterVertically:=True)
         WriteAt("  einer Runde mit deinem Charakter springen und", x:=35, y:=-2, CenterVertically:=True)
-        WriteAt("  so auf dich zukommende Hindernisse überwinden.", x:=35, y:=-1, CenterVertically:=True)
-        WriteAt("- Durch betätigen der Pfeiltasten kannst du", x:=35, y:=1, CenterVertically:=True)
-        WriteAt("  zwischen verschiedenen menüpunkten Wählen", x:=35, y:=2, CenterVertically:=True)
-        WriteAt("- Mit der Entertaste oder der Leertaste bestätigst", x:=35, y:=4, CenterVertically:=True)
+        WriteAt("  so auf dich zukommende Hindernisse ueberwinden.", x:=35, y:=-1, CenterVertically:=True)
+        WriteAt("- Durch betaetigen der Pfeiltasten kannst du", x:=35, y:=1, CenterVertically:=True)
+        WriteAt("  zwischen verschiedenen menuepunkten Waehlen", x:=35, y:=2, CenterVertically:=True)
+        WriteAt("- Mit der Entertaste oder der Leertaste bestaetigst", x:=35, y:=4, CenterVertically:=True)
         WriteAt("  du die, blau hinterlegte, aktuelle Auswahl", x:=35, y:=5, CenterVertically:=True)
         While menuConfirm = False
         End While
         menuConfirm = False
         Console.Clear()
-        WriteAt("Damit du starten kannst müssen wir noch wissen unter", x:=35, y:=-6, CenterVertically:=True)
+        WriteAt("Damit du starten kannst muessen wir noch wissen unter", x:=35, y:=-6, CenterVertically:=True)
         WriteAt("welchem Namen du antrittst.", x:=35, y:=-5, CenterVertically:=True)
         SubMenuChangeName()
         Console.ForegroundColor = ConsoleColor.Blue
         WriteAt("> Continue", 3, 1)
         Console.ForegroundColor = ConsoleColor.White
         WriteAt("Alles klar " & LoadSettings(2) & " dann kann es ja los gehen!", x:=35, y:=-6, CenterVertically:=True)
-        WriteAt("Schnür deine Schuhe und stürze dich in das Abenteuer", x:=35, y:=-4, CenterVertically:=True)
+        WriteAt("Schnuer deine Schuhe und stuerze dich in das Abenteuer", x:=35, y:=-4, CenterVertically:=True)
         WriteAt("von Runner 96 und zeige, was in dir steckt.", x:=35, y:=-3, CenterVertically:=True)
         While menuConfirm = False
         End While
