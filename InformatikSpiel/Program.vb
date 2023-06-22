@@ -2,6 +2,7 @@ Imports System.IO
 Imports FireSharp.Config
 Imports FireSharp.Response
 Imports FireSharp.Interfaces
+Imports Runner96.MCIDEMO
 
 Module Module1
     Private Const constConsoleWidth As Integer = 120
@@ -1226,11 +1227,11 @@ Module Module1
     Public Sub ToggleAudio()
         If musicEnabled Then
             musicEnabled = False
-            SaveSettings(False)
+            SaveSettings(0, False)
             menuloopSound.StopPlaying()
         Else
             musicEnabled = True
-            SaveSettings(True)
+            SaveSettings(0, True)
             menuloopSound.PlayLoop()
         End If
     End Sub
@@ -1343,7 +1344,12 @@ Module Module1
     End Sub
 
     Public Sub Main()
-        ConsoleSetup(constConsoleWidth, constConsoleHeight)
+        Debug.WriteLine(Debugger.IsAttached)
+        If Debugger.IsAttached = False Then
+            ConsoleSetup(constConsoleWidth + 1, constConsoleHeight)
+        Else
+            ConsoleSetup(constConsoleWidth, constConsoleHeight)
+        End If
         FirebaseLoad()
         AsyncLoopGame()
         Introduction()
