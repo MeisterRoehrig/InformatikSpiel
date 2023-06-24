@@ -1,2 +1,0 @@
-D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Release\net6.0\publish\win-x86\Runner96.pdb
-D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\bin\Release\net6.0\publish\win-x86\Runner96.exe

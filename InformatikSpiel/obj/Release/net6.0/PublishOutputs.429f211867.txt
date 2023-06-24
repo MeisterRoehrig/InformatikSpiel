@@ -1,5 +1,0 @@
-D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\InformatikSpiel.exe
-D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\InformatikSpiel.dll
-D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\InformatikSpiel.deps.json
-D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\InformatikSpiel.runtimeconfig.json
-D:\2023_SATARI_DATA\CODE\InformatikSpiel\InformatikSpiel\InformatikSpiel.pdb
