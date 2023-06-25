@@ -61,65 +61,72 @@ Namespace My.Resources
         End Property
         
         '''<summary>
-        '''  Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        '''  Looks up a localized resource of type System.Byte[].
         '''</summary>
-        Friend ReadOnly Property bigscore() As System.IO.UnmanagedMemoryStream
+        Friend ReadOnly Property bigscore() As Byte()
             Get
-                Return ResourceManager.GetStream("bigscore", resourceCulture)
+                Dim obj As Object = ResourceManager.GetObject("bigscore", resourceCulture)
+                Return CType(obj,Byte())
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        '''  Looks up a localized resource of type System.Byte[].
         '''</summary>
-        Friend ReadOnly Property death() As System.IO.UnmanagedMemoryStream
+        Friend ReadOnly Property death() As Byte()
             Get
-                Return ResourceManager.GetStream("death", resourceCulture)
+                Dim obj As Object = ResourceManager.GetObject("death", resourceCulture)
+                Return CType(obj,Byte())
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        '''  Looks up a localized resource of type System.Byte[].
         '''</summary>
-        Friend ReadOnly Property intro() As System.IO.UnmanagedMemoryStream
+        Friend ReadOnly Property intro() As Byte()
             Get
-                Return ResourceManager.GetStream("intro", resourceCulture)
+                Dim obj As Object = ResourceManager.GetObject("intro", resourceCulture)
+                Return CType(obj,Byte())
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        '''  Looks up a localized resource of type System.Byte[].
         '''</summary>
-        Friend ReadOnly Property jump() As System.IO.UnmanagedMemoryStream
+        Friend ReadOnly Property jump() As Byte()
             Get
-                Return ResourceManager.GetStream("jump", resourceCulture)
+                Dim obj As Object = ResourceManager.GetObject("jump", resourceCulture)
+                Return CType(obj,Byte())
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        '''  Looks up a localized resource of type System.Byte[].
         '''</summary>
-        Friend ReadOnly Property menuloop() As System.IO.UnmanagedMemoryStream
+        Friend ReadOnly Property menuloop() As Byte()
             Get
-                Return ResourceManager.GetStream("menuloop", resourceCulture)
+                Dim obj As Object = ResourceManager.GetObject("menuloop", resourceCulture)
+                Return CType(obj,Byte())
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        '''  Looks up a localized resource of type System.Byte[].
         '''</summary>
-        Friend ReadOnly Property music() As System.IO.UnmanagedMemoryStream
+        Friend ReadOnly Property music() As Byte()
             Get
-                Return ResourceManager.GetStream("music", resourceCulture)
+                Dim obj As Object = ResourceManager.GetObject("music", resourceCulture)
+                Return CType(obj,Byte())
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        '''  Looks up a localized resource of type System.Byte[].
         '''</summary>
-        Friend ReadOnly Property score() As System.IO.UnmanagedMemoryStream
+        Friend ReadOnly Property score() As Byte()
             Get
-                Return ResourceManager.GetStream("score", resourceCulture)
+                Dim obj As Object = ResourceManager.GetObject("score", resourceCulture)
+                Return CType(obj,Byte())
             End Get
         End Property
     End Module

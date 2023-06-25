@@ -3,6 +3,7 @@ Imports FireSharp.Config
 Imports FireSharp.Response
 Imports FireSharp.Interfaces
 Imports Runner96.MCIDEMO
+Imports NAudio.Wave
 
 Module Module1
     Private Const constConsoleWidth As Integer = 120
@@ -26,7 +27,7 @@ Module Module1
     Private playerJump As Boolean 'True, wenn Sprunganimation gestartet werden soll
     Private animateJump As Boolean = False 'Variable ist True sofern sich der Spieler aktiv in einem Sprung befindet
 
-    Public tempFilePaths As List(Of String) = New List(Of String)()
+    Private tempBaseFolder As String = AddDirectory(Path.GetTempPath() & "Runner96\") 'Directory zum Temp Folder der Anwendung
     Private Snds As New MultiSounds 'Externer sound Player fuer parallele Sounds
     Private initiateSounds As Boolean = True 'Damit Sounds nur einmal geladen werden
     Private playJumpSound As Boolean = False  'Wenn True wird der jeweilige Sound abgespielt
@@ -34,9 +35,9 @@ Module Module1
     Private playDeathSound As Boolean = False
     Private playScoreSound As Boolean = False
     Private playBigScoreSound As Boolean = False
-    Private menuloopSound As New MciPlayer(LoadWaveSound(My.Resources.menuloop), "1") 'Hintergrundmusik des Menues
-    Private gamemusicSound As New MciPlayer(LoadWaveSound(My.Resources.music), "2") 'Hintergrundmusik werdend der Runde
-    Private introSound As New MciPlayer(LoadWaveSound(My.Resources.intro), "3") 'Soundeffekt des Runner96 Logos
+    Private menuloopSound As New MciPlayer(LoadWaveFile(My.Resources.menuloop, "menuloop", ".mp3"), "1") 'Hintergrundmusik des Menues
+    Private gamemusicSound As New MciPlayer(LoadWaveFile(My.Resources.music, "music", ".mp3"), "2") 'Hintergrundmusik werdend der Runde
+    Private introSound As New MciPlayer(LoadWaveFile(My.Resources.intro, "intro", ".mp3"), "3") 'Soundeffekt des Runner96 Logos
 
     Private keyInputDelay As Boolean = True ''Fuegt ein kurzes Delay hinzu bevor die naechste Runde gestartet werden kann
     Private selectedMenuOption As Integer = 0 'Welcher Menuepunkt ausgewaehlt ist und im Fall von menuConfirm=True bestaetigt wird
@@ -91,6 +92,7 @@ Module Module1
         Console.Title = "Runner 96"
         Console.TreatControlCAsInput = True 'Deaktiviert standardmaessige Tastenkombinationen wie ctrl + c zum schliessen des Fensters 
         Debug.WriteLine(AppDomain.CurrentDomain.BaseDirectory.ToString()) 'File Path zum root folder der Applikation
+        Debug.WriteLine(tempBaseFolder) 'File Path zum Temp folder der Applikation
         musicEnabled = LoadSettings(0) 'Laedt einstellungen ob hintergrund Musik ein oder ausgeschaltet sein soll aus der settings Datei
     End Sub
 
@@ -152,7 +154,7 @@ Module Module1
         Return sortedGameScoreDictionary
     End Function
 
-    'RoundStart() Setzt Variablen zurueck und startet die neue Runde
+    ' RoundStart() Setzt Variablen zurueck und startet die neue Runde
     Public Sub RoundStart()
         Console.Clear()
         playerInRound = True
@@ -174,12 +176,71 @@ Module Module1
         AsyncLoopRound()
     End Sub
 
+    ' Prueft ob ein Ordner an einem Pfad existiert und fügt ihn hinzu solte dieß nicht der fall sein
+    Public Function AddDirectory(newPath As String) As String
+        Try
+            If Not System.IO.Directory.Exists(newPath) Then
+                Debug.WriteLine("newPath: Exists Not")
+                System.IO.Directory.CreateDirectory(newPath)
+                Debug.WriteLine("newPath: Exists " & newPath)
+            End If
+        Catch ex As Exception
+            Debug.WriteLine(newPath & " Path could not be created. " & ex.ToString())
+        End Try
+        Return newPath
+    End Function
+
+    ' Prueft, ob die gesuchte Tondatei bereits als temp gespeichert ist und fügt sie hinzu, wenn dies nicht der Fall ist.
+    Public Function LoadWaveFile(ByVal resourceData As Byte(), ByRef soundName As String, outputFormat As String) As String
+        Dim tempFilePath As String = tempBaseFolder & soundName & outputFormat
+        Try
+            If Not System.IO.Directory.Exists(tempFilePath) Then
+                If outputFormat.ToLower() = ".wav" Then
+                    File.WriteAllBytes(tempFilePath, ConvertMp3ToWav(resourceData))
+                End If
+
+                If outputFormat.ToLower() = ".mp3" Then
+                    File.WriteAllBytes(tempFilePath, resourceData)
+                End If
+            End If
+            Return tempFilePath
+        Catch ex As Exception
+            Debug.WriteLine("Error while creating: " & tempFilePath & " " & ex.ToString())
+        End Try
+    End Function
+
+    '[Quellle] https://github.com/naudio/NAudio/blob/master/Docs/ConvertMp3ToWav.md
+    Public Function ConvertMp3ToWav(ByVal mp3Bytes As Byte()) As Byte()
+        Try
+            Dim mp3Stream As New MemoryStream(mp3Bytes)
+            Dim mp3Reader As New Mp3FileReader(mp3Stream)
+            Dim waveStream As WaveStream = WaveFormatConversionStream.CreatePcmStream(mp3Reader)
+            Dim wavMemoryStream As New MemoryStream()
+            Dim wavWriter As New WaveFileWriter(wavMemoryStream, waveStream.WaveFormat)
+            Dim wavBuffer(4096) As Byte
+            Dim wavBytesRead As Integer
+            Do
+                wavBytesRead = waveStream.Read(wavBuffer, 0, wavBuffer.Length)
+                wavWriter.Write(wavBuffer, 0, wavBytesRead)
+            Loop While wavBytesRead > 0
+            wavWriter.Flush()
+            wavWriter.Close()
+            waveStream.Dispose()
+            mp3Reader.Dispose()
+            mp3Stream.Dispose()
+            Return wavMemoryStream.ToArray()
+        Catch ex As Exception
+            Console.WriteLine("Error converting MP3 to WAV: " & ex.Message)
+            Return Nothing
+        End Try
+    End Function
+
     'SaveSettings() Speichert Settings in settings.txt diese auch nach neustart des Spiels noch nutzen zu koennen
     Public Sub SaveSettings(ByRef lineOfFile As Integer, Optional musicEnabled As Boolean = False, Optional openFirstTime As Boolean = False, Optional playerName As String = "")
         If lineOfFile = 0 Then '0 ist Speicherort fuer musicEnabled
             Try
                 Dim data As String() = {musicEnabled.ToString, LoadSettings(1), LoadSettings(2)}
-                File.WriteAllLines("settings.txt", data)
+                File.WriteAllLines(tempBaseFolder & "settings.txt", data)
             Catch
                 Debug.WriteLine("[LoadSettings] musicEnabled could not be written to settings.txt")
             End Try
@@ -187,7 +248,7 @@ Module Module1
         If lineOfFile = 1 Then '1 ist Speicherort fuer openFirstTime
             Try
                 Dim data As String() = {LoadSettings(0), openFirstTime.ToString(), LoadSettings(2)}
-                File.WriteAllLines("settings.txt", data)
+                File.WriteAllLines(tempBaseFolder & "settings.txt", data)
             Catch
                 Debug.WriteLine("[LoadSettings] openFirstTime could not be written to settings.txt")
             End Try
@@ -195,7 +256,7 @@ Module Module1
         If lineOfFile = 2 Then '2 ist Speicherort fuer playerName
             Try
                 Dim data As String() = {LoadSettings(0), LoadSettings(1), playerName}
-                File.WriteAllLines("settings.txt", data)
+                File.WriteAllLines(tempBaseFolder & "settings.txt", data)
             Catch
                 Debug.WriteLine("[LoadSettings] playerName could not be written to settings.txt")
             End Try
@@ -206,25 +267,25 @@ Module Module1
     Public Function LoadSettings(ByRef lineOfFile As Integer)
         If lineOfFile = 0 Then '0 ist Speicherort fuer musicEnabled
             Try
-                Return Convert.ToBoolean(File.ReadAllLines("settings.txt")(0))
+                Return Convert.ToBoolean(File.ReadAllLines(tempBaseFolder & "settings.txt")(0))
             Catch
                 Debug.WriteLine("[LoadSettings] settings.txt could not be read")
-                Debug.WriteLine("[LoadSettings] setting musicEnabled = False")
-                Return False
+                Debug.WriteLine("[LoadSettings] setting musicEnabled = True")
+                Return True
             End Try
         End If
         If lineOfFile = 1 Then '1 ist Speicherort fuer openFirstTime
             Try
-                Return Convert.ToBoolean(File.ReadAllLines("settings.txt")(1))
+                Return Convert.ToBoolean(File.ReadAllLines(tempBaseFolder & "settings.txt")(1))
             Catch
                 Debug.WriteLine("[LoadSettings] settings.txt could not be read")
-                Debug.WriteLine("[LoadSettings] setting openFirstTime = False")
-                Return False
+                Debug.WriteLine("[LoadSettings] setting openFirstTime = True")
+                Return True
             End Try
         End If
         If lineOfFile = 2 Then '2 ist Speicherort fuer playerName
             Try
-                Return File.ReadAllLines("settings.txt")(2)
+                Return File.ReadAllLines(tempBaseFolder & "settings.txt")(2)
             Catch
                 Debug.WriteLine("[LoadSettings] settings.txt could not be read")
                 Debug.WriteLine("[LoadSettings] setting basename instead")
@@ -746,10 +807,10 @@ Module Module1
         Dim overObstacle As Boolean = False
         While playerInRound
             If groundTiles(6).tileType <> 0 Then
-                If playerJumpHeight < 0.2 Then
-                    playDeathSound = True
-                    gameOverBoolean = True
-                    playerInRound = False
+                If playerJumpHeight <0.2 Then
+                    playDeathSound= True
+                    gameOverBoolean= True
+                    playerInRound= False
                 End If
                 overObstacle = True
             End If
@@ -869,10 +930,10 @@ Module Module1
     'SoundManager() Spielt Sounds parallel ab
     Public Sub SoundManager()
         If initiateSounds Then 'Laedt Sounds bei start
-            Snds.AddSound("Jump", LoadWaveSound(My.Resources.jump))
-            Snds.AddSound("Death", LoadWaveSound(My.Resources.death))
-            Snds.AddSound("Score", LoadWaveSound(My.Resources.score))
-            Snds.AddSound("BigScore", LoadWaveSound(My.Resources.bigscore))
+            Snds.AddSound("Jump", LoadWaveFile(My.Resources.jump, "jump", ".wav"))
+            Snds.AddSound("Death", LoadWaveFile(My.Resources.death, "death", ".wav"))
+            Snds.AddSound("Score", LoadWaveFile(My.Resources.score, "score", ".wav"))
+            Snds.AddSound("BigScore", LoadWaveFile(My.Resources.bigscore, "bigscore", ".wav"))
             initiateSounds = False
         End If
 
@@ -966,7 +1027,6 @@ Module Module1
             gamemusicSound.StopPlaying()
             menuloopSound.PlayLoop()
         End If
-
         For i = 0 To 5 'Laesst Hindernis mit dem die Spielfigur kollidiert ist Rot flackern
             DrawArray($"{groundTiles(6).tileType} ", 6, constConsoleHeight - 1)
             Threading.Thread.Sleep(20)
@@ -1344,41 +1404,9 @@ Module Module1
         Console.Clear()
     End Sub
 
-    ' Lade Wave Sounds aus My.Resources und speicher sie als Temp Datei damit sie von Winmm gelsen werden können
-    Function LoadWaveSound(ByVal soundStream As UnmanagedMemoryStream) As String
-        Dim tempFilePath As String = Path.GetTempFileName() & ".wav"
-        Dim soundBytes As Byte() = New Byte(soundStream.Length - 1) {}
-        soundStream.Read(soundBytes, 0, soundBytes.Length)
-        File.WriteAllBytes(tempFilePath, soundBytes)
-        tempFilePaths.Add(tempFilePath)
-        Return tempFilePath
-    End Function
-
-    Sub ConsoleExit(ByVal sender As Object, ByVal e As EventArgs)
-        Try
-            For Each filePath In tempFilePaths
-                DeleteTempFile(filePath)
-            Next
-        Catch
-        End Try
-    End Sub
-
-    Sub DeleteTempFile(ByVal filePath As String)
-        Try
-            If File.Exists(filePath) Then
-                File.Delete(filePath)
-            End If
-        Catch ex As Exception
-            Debug.WriteLine("Temp File: " + filePath + " could not be deleted")
-        End Try
-
-    End Sub
-
     Public Sub Main()
-        Debug.WriteLine(Debugger.IsAttached)
-        ' Löscht temporäre dateien wenn Konsole geschlossen wird
-        AddHandler AppDomain.CurrentDomain.ProcessExit, AddressOf ConsoleExit
-
+        Debug.WriteLine("Debugger IsAttached: " + Debugger.IsAttached.ToString())
+        'Behebt Render Fehler, wenn die Konsole als eigenstaendige Anwendung gestartet wird
         If Debugger.IsAttached = False Then
             ConsoleSetup(constConsoleWidth + 1, constConsoleHeight)
         Else

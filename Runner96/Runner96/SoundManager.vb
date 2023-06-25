@@ -123,7 +123,6 @@ Namespace MCIDEMO
 			Dim ret As Integer = mciSendString(Pcommand, Nothing, 0, IntPtr.Zero)
 		End Sub
 
-
 	End Class
 End Namespace
 
@@ -138,8 +137,6 @@ Public Class MultiSounds
 	Public Function AddSound(ByVal SoundName As String, ByVal SndFilePath As String) As Boolean
 		If SoundName.Trim = "" Or Not IO.File.Exists(SndFilePath) Then Return False
 		If mciSendStringW("open " & Chr(34) & SndFilePath & Chr(34) & " alias " & "Snd_" & sndcnt.ToString, Nothing, 0, IntPtr.Zero) <> 0 Then Return False
-		Debug.WriteLine("open: " & SoundName)
-
 		Snds.Add(SoundName, "Snd_" & sndcnt.ToString)
 		sndcnt += 1
 		Return True
@@ -147,7 +144,6 @@ Public Class MultiSounds
 
 	Public Function Play(ByVal SoundName As String) As Boolean
 		If Not Snds.ContainsKey(SoundName) Then Return False
-		Debug.WriteLine("Player: " & SoundName)
 		mciSendStringW("seek " & Snds.Item(SoundName) & " to start", Nothing, 0, IntPtr.Zero)
 		If mciSendStringW("play " & Snds.Item(SoundName), Nothing, 0, IntPtr.Zero) <> 0 Then Return False
 		Return True
