@@ -44,6 +44,10 @@
               "target": "Package",
               "version": "[2.0.4, )"
             },
+            "NAudio": {
+              "target": "Package",
+              "version": "[2.1.0, )"
+            },
             "System.Security.Permissions": {
               "target": "Package",
               "version": "[7.0.0, )"
