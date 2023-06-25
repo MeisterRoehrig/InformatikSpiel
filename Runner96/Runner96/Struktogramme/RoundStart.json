@@ -1,0 +1,93 @@
+{
+  "id": "cdd70fe3-916f-19d4-234b-3aec6bea",
+  "type": "InsertNode",
+  "followElement": {
+    "id": "7901584e-532b-8876-46a3-0b136525",
+    "type": "FunctionNode",
+    "text": "RoundStart",
+    "parameters": [],
+    "followElement": {
+      "id": "e0f2c475-7e24-e114-186f-249bd18a",
+      "type": "InsertNode",
+      "followElement": null
+    },
+    "child": {
+      "id": "282b6228-9fe9-71dd-8925-20837085",
+      "type": "InsertNode",
+      "followElement": {
+        "id": "7f588d17-a2df-3fd5-fc21-dbd7b200",
+        "type": "TaskNode",
+        "text": "Setzt Variabeln der Runde auf ihre Anfangswerte ",
+        "followElement": {
+          "id": "29606acb-2907-b3f0-a964-257e0726",
+          "type": "InsertNode",
+          "followElement": {
+            "id": "1d4b839f-3de8-e957-8d53-d6246528",
+            "type": "BranchNode",
+            "text": "Steht in der Settings Datei das Hintergrundmusik eingeschaltet ist",
+            "followElement": {
+              "id": "1d2a7b49-b433-c4db-20d5-caebae9e",
+              "type": "InsertNode",
+              "followElement": {
+                "id": "4aac99f3-8ac1-a9ff-943c-904c8203",
+                "type": "TaskNode",
+                "text": "Starte ArraySetUp",
+                "followElement": {
+                  "id": "b7ed2277-86c5-0cd6-aec1-81fb3a15",
+                  "type": "InsertNode",
+                  "followElement": {
+                    "id": "32e94500-d87e-ba98-4a0f-09f82219",
+                    "type": "TaskNode",
+                    "text": "Starte parallel die Prozesse RenderLoop, Timer, PlayerAnimator, CollisionManager, SkyAnimator",
+                    "followElement": {
+                      "id": "705db1b2-7b57-b898-4fed-d808997f",
+                      "type": "InsertNode",
+                      "followElement": {
+                        "id": "def9e4d8-aaed-75d7-0a5a-2ca2990f",
+                        "type": "TaskNode",
+                        "text": "Warte auf das Ende des RenderLoops",
+                        "followElement": {
+                          "id": "d8114692-7e6c-035d-b19d-9ad32c83",
+                          "type": "InsertNode",
+                          "followElement": null
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "trueChild": {
+              "id": "e613996f-d68d-777d-af79-81bdb0dc",
+              "type": "InsertNode",
+              "followElement": {
+                "id": "a114470c-2d17-0893-6c09-732419d1",
+                "type": "TaskNode",
+                "text": "Schalte Hintergrundmusik des Menüs ab",
+                "followElement": {
+                  "id": "f70bee48-129e-949e-418d-3cb87b03",
+                  "type": "InsertNode",
+                  "followElement": {
+                    "id": "5757e704-d899-ca00-2f79-36db2a29",
+                    "type": "TaskNode",
+                    "text": "Schalte Hintergrundmusik ein",
+                    "followElement": {
+                      "id": "409baf9f-7314-48b1-d615-b70d126d",
+                      "type": "InsertNode",
+                      "followElement": null
+                    }
+                  }
+                }
+              }
+            },
+            "falseChild": {
+              "id": "7f7faed9-f586-5440-9d6b-f8559dc1",
+              "type": "InsertNode",
+              "followElement": { "type": "Placeholder" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
